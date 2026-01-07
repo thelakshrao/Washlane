@@ -1,4 +1,12 @@
 import React, { useMemo, useState, useEffect } from "react";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  CheckCircle,
+  ArrowRight,
+  ArrowLeft,
+} from "lucide-react";
 import threeperson from "../images/three.png";
 
 const SchedualPickUp = () => {
@@ -8,6 +16,13 @@ const SchedualPickUp = () => {
   const [timeWarning, setTimeWarning] = useState("");
   const [serviceData, setServiceData] = useState({});
   const [activeConfig, setActiveConfig] = useState(null);
+
+  const colors = {
+    deepNavy: "#061E29",
+    primaryBlue: "#1D546D",
+    teal: "#5F9598",
+    lightGrey: "#F3F4F4",
+  };
 
   const [formData, setFormData] = useState({
     name: "",
@@ -91,13 +106,10 @@ const SchedualPickUp = () => {
   useEffect(() => {
     if (dates.length) setSelectedDate(dates[0].fullDate);
     const now = new Date();
-    const indiaTime = new Date(
-      now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
-    );
-    const current = `${indiaTime
-      .getHours()
+    const current = `${now.getHours().toString().padStart(2, "0")}:${now
+      .getMinutes()
       .toString()
-      .padStart(2, "0")}:${indiaTime.getMinutes().toString().padStart(2, "0")}`;
+      .padStart(2, "0")}`;
     setSelectedTime(current);
     validateTime(current);
   }, [dates]);
@@ -117,16 +129,13 @@ const SchedualPickUp = () => {
     const count = Math.max(0, parseInt(val) || 0);
     setServiceData((prev) => {
       const current = prev[id] || {};
-      if (itemName) {
-        return { ...prev, [id]: { ...current, [itemName]: count } };
-      }
+      if (itemName) return { ...prev, [id]: { ...current, [itemName]: count } };
       return { ...prev, [id]: count };
     });
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const validateTime = (time) => {
     const [hour, minute] = time.split(":").map(Number);
@@ -141,130 +150,232 @@ const SchedualPickUp = () => {
     formData.name.trim() && formData.phone.trim() && formData.address.trim();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex flex-col md:flex-row gap-10 w-full bg-black items-center justify-center pt-20 pb-10 px-4 md:px-20">
-        <div className="md:w-1/4 flex justify-center">
-          <img src={threeperson} alt="people" className="w-48" />
+    <div className="min-h-screen" style={{ backgroundColor: colors.lightGrey }}>
+      <div
+        className="relative overflow-hidden pt-24 pb-16 px-6 md:px-20 text-white"
+        style={{
+          background: `linear-gradient(135deg, ${colors.deepNavy} 0%, ${colors.primaryBlue} 100%)`,
+        }}
+      >
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between relative z-10">
+          <div className="md:w-1/2 text-left space-y-4 animate-in slide-in-from-left duration-700">
+            <span
+              className="px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase"
+              style={{ backgroundColor: colors.teal }}
+            >
+              Premium Laundry Service
+            </span>
+            <h1 className="text-5xl md:text-7xl font-extrabold leading-tight">
+              Fresh Clothes,
+              <br /> <span style={{ color: colors.teal }}>Zero Effort.</span>
+            </h1>
+            <p className="text-gray-300 text-lg max-w-md">
+              The smartest way to handle your laundry. Choose your time, pick
+              your items, and let us handle the rest.
+            </p>
+          </div>
+          <div className="md:w-1/2 mt-10 md:mt-0 flex justify-center relative">
+            <div className="absolute inset-0 bg-teal-500/20 blur-3xl rounded-full"></div>
+            <img
+              src={threeperson}
+              alt="Laundry Service"
+              className="w-64 md:w-96 drop-shadow-2xl animate-bounce-slow relative z-10"
+              style={{ animation: "float 6s ease-in-out infinite" }}
+            />
+          </div>
         </div>
-        <div className="md:w-1/2 text-center py-5">
-          <h1 className="text-white text-4xl md:text-6xl font-semibold">
-            Schedule a Pickup
-          </h1>
+
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
+          <svg
+            viewBox="0 0 1200 120"
+            preserveAspectRatio="none"
+            className="relative block w-full h-12 fill-current"
+            style={{ color: colors.lightGrey }}
+          >
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C58.47,113.1,121.13,103.11,179.13,90.54Z"></path>
+          </svg>
         </div>
       </div>
 
-      <section className="flex justify-center items-center px-4 py-10">
-        <div className="w-full max-w-4xl bg-white border border-black/10 rounded-xl p-6 shadow-sm">
-          <div className="flex justify-between mb-8 text-xs font-medium">
+      <section className="flex justify-center items-start px-4 -mt-10 pb-20 relative z-20">
+        <div className="w-full max-w-4xl bg-white rounded-3xl p-8 md:p-12 shadow-2xl shadow-blue-900/10">
+          <div className="flex justify-between mb-12 relative">
+            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-100 -translate-y-1/2 z-0"></div>
             {[1, 2, 3, 4, 5].map((step) => (
               <div
                 key={step}
-                className={`flex-1 text-center pb-2 border-b-2 transition-colors ${
-                  step <= currentStep
-                    ? "border-black text-black"
-                    : "border-gray-200 text-gray-400"
+                className={`relative z-10 flex flex-col items-center transition-all duration-500 ${
+                  step <= currentStep ? "opacity-100" : "opacity-40"
                 }`}
               >
-                Step {step}
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm mb-2 border-4 transition-colors shadow-lg ${
+                    step <= currentStep
+                      ? "text-white"
+                      : "bg-white text-gray-400 border-gray-100"
+                  }`}
+                  style={{
+                    backgroundColor:
+                      step <= currentStep ? colors.teal : "white",
+                    borderColor: step <= currentStep ? colors.teal : "#F3F4F4",
+                  }}
+                >
+                  {step < currentStep ? "✓" : step}
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                  Step {step}
+                </span>
               </div>
             ))}
           </div>
 
           {currentStep === 1 && (
-            <div className="animate-in fade-in duration-300">
-              <h2 className="text-xl md:text-2xl font-semibold mb-1">
-                When should we pick up?
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2
+                className="text-3xl font-bold mb-2"
+                style={{ color: colors.deepNavy }}
+              >
+                Pick a Schedule
               </h2>
-              <p className="text-sm text-gray-500 mb-6">
-                Choose a convenient date and time
+              <p className="text-gray-500 mb-8">
+                Select your preferred date and time for pickup
               </p>
-              <div className="flex gap-3 overflow-x-auto pb-4 mb-6">
+
+              <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
                 {dates.map((item) => (
                   <button
                     key={item.fullDate}
                     onClick={() => setSelectedDate(item.fullDate)}
-                    className={`min-w-18 p-3 rounded-lg border transition-all ${
+                    className={`min-w-[80px] py-4 px-2 rounded-2xl border-2 transition-all duration-300 ${
                       selectedDate === item.fullDate
-                        ? "bg-black text-white border-black"
-                        : "border-gray-200 hover:border-black"
+                        ? "text-white shadow-lg"
+                        : "bg-white border-gray-100 text-gray-400 hover:border-teal-200"
                     }`}
+                    style={{
+                      backgroundColor:
+                        selectedDate === item.fullDate
+                          ? colors.primaryBlue
+                          : "white",
+                      borderColor:
+                        selectedDate === item.fullDate
+                          ? colors.primaryBlue
+                          : "#F3F4F4",
+                    }}
                   >
-                    <div className="text-xs uppercase">{item.day}</div>
-                    <div className="text-lg font-bold">{item.date}</div>
+                    <div className="text-[10px] uppercase font-bold opacity-80">
+                      {item.day}
+                    </div>
+                    <div className="text-2xl font-black">{item.date}</div>
                   </button>
                 ))}
               </div>
-              <label className="block font-medium mb-2">Select Time Slot</label>
-              <input
-                type="time"
-                value={selectedTime}
-                onChange={(e) => {
-                  setSelectedTime(e.target.value);
-                  validateTime(e.target.value);
-                }}
-                className="p-4 rounded-lg border w-full focus:ring-2 ring-black/5 outline-none"
-              />
-              {timeWarning && (
-                <p className="text-sm text-red-500 mt-2 font-medium">
-                  {timeWarning}
-                </p>
-              )}
+
+              <div className="mt-4">
+                <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">
+                  Pickup Time
+                </label>
+                <input
+                  type="time"
+                  value={selectedTime}
+                  onChange={(e) => {
+                    setSelectedTime(e.target.value);
+                    validateTime(e.target.value);
+                  }}
+                  className="p-4 rounded-xl border-2 border-gray-100 w-full focus:ring-4 outline-none transition-all"
+                  style={{
+                    focusRingColor: colors.teal + "20",
+                    focusBorderColor: colors.teal,
+                  }}
+                />
+                {timeWarning && (
+                  <p className="text-sm text-red-500 mt-3 font-semibold flex items-center gap-2">
+                    ⚠️ {timeWarning}
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
           {currentStep === 2 && (
-            <div className="relative">
-              <h2 className="text-2xl font-semibold mb-2">Select Services</h2>
-              <p className="text-gray-500 mb-6">Click a service to add items</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="animate-in fade-in duration-500">
+              <h2
+                className="text-3xl font-bold mb-2"
+                style={{ color: colors.deepNavy }}
+              >
+                Select Services
+              </h2>
+              <p className="text-gray-500 mb-8">
+                What are we cleaning for you today?
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {servicesList.map((service) => {
                   const total = getServiceTotal(service.id);
                   const isConfiguring = activeConfig === service.id;
                   return (
                     <div
                       key={service.id}
-                      className={`relative p-5 rounded-2xl border-2 transition-all ${
-                        total > 0
-                          ? "border-black bg-gray-50"
-                          : "border-gray-100"
+                      className={`relative p-6 rounded-3xl border-2 transition-all duration-300 ${
+                        total > 0 ? "shadow-md" : "border-gray-50"
                       }`}
+                      style={{
+                        borderColor: total > 0 ? colors.teal : "#F9FAFB",
+                        backgroundColor: total > 0 ? colors.lightGrey : "white",
+                      }}
                     >
                       {!isConfiguring ? (
                         <div className="flex justify-between items-center">
                           <div>
-                            <h4 className="font-bold text-lg">
+                            <h4
+                              className="font-black text-xl"
+                              style={{ color: colors.deepNavy }}
+                            >
                               {service.title}
                             </h4>
-                            <p className="text-sm text-gray-500">
+                            <p
+                              className="text-sm font-bold opacity-60"
+                              style={{ color: colors.primaryBlue }}
+                            >
                               {service.price}
                             </p>
                             {total > 0 && (
-                              <span className="inline-block mt-2 px-3 py-1 bg-black text-white text-xs rounded-full">
-                                {total} Items Added
+                              <span
+                                className="inline-block mt-3 px-4 py-1 text-white text-[10px] font-black rounded-full"
+                                style={{ backgroundColor: colors.teal }}
+                              >
+                                {total} ITEMS
                               </span>
                             )}
                           </div>
                           <button
                             onClick={() => setActiveConfig(service.id)}
-                            className="bg-black text-white px-4 py-2 rounded-lg text-sm"
+                            className="px-6 py-2 rounded-xl text-sm font-bold text-white transition-transform active:scale-95 shadow-md"
+                            style={{ backgroundColor: colors.primaryBlue }}
                           >
                             {total > 0 ? "Edit" : "Add"}
                           </button>
                         </div>
                       ) : (
-                        <div className="animate-in fade-in zoom-in duration-200">
-                          <h4 className="font-bold mb-4">
-                            Configure {service.title}
+                        <div className="animate-in zoom-in-95 duration-200">
+                          <h4 className="font-black mb-6 flex justify-between items-center">
+                            <span>{service.title}</span>
+                            <span
+                              className="text-xs px-2 py-1 rounded bg-white"
+                              style={{ color: colors.teal }}
+                            >
+                              Configuring
+                            </span>
                           </h4>
                           {service.items ? (
-                            <div className="space-y-3 mb-4">
+                            <div className="space-y-4 mb-6">
                               {service.items.map((item) => (
                                 <div
                                   key={item}
                                   className="flex justify-between items-center"
                                 >
-                                  <span className="text-sm">{item}</span>
-                                  <div className="flex items-center gap-3">
+                                  <span className="text-sm font-medium">
+                                    {item}
+                                  </span>
+                                  <div className="flex items-center gap-4">
                                     <button
                                       onClick={() =>
                                         handleUpdateCount(
@@ -274,11 +385,11 @@ const SchedualPickUp = () => {
                                             0) - 1
                                         )
                                       }
-                                      className="w-8 h-8 border rounded-full"
+                                      className="w-8 h-8 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center font-bold"
                                     >
                                       -
                                     </button>
-                                    <span className="w-4 text-center">
+                                    <span className="w-4 text-center font-bold">
                                       {serviceData[service.id]?.[item] || 0}
                                     </span>
                                     <button
@@ -290,7 +401,8 @@ const SchedualPickUp = () => {
                                             0) + 1
                                         )
                                       }
-                                      className="w-8 h-8 border rounded-full"
+                                      className="w-8 h-8 rounded-lg text-white shadow-md flex items-center justify-center font-bold"
+                                      style={{ backgroundColor: colors.teal }}
                                     >
                                       +
                                     </button>
@@ -299,11 +411,11 @@ const SchedualPickUp = () => {
                               ))}
                             </div>
                           ) : (
-                            <div className="flex items-center justify-between mb-4">
-                              <span className="text-sm font-medium">
+                            <div className="flex items-center justify-between mb-6">
+                              <span className="text-sm font-bold">
                                 Quantity
                               </span>
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-4">
                                 <button
                                   onClick={() =>
                                     handleUpdateCount(
@@ -312,11 +424,11 @@ const SchedualPickUp = () => {
                                       (serviceData[service.id] || 0) - 1
                                     )
                                   }
-                                  className="w-8 h-8 border rounded-full"
+                                  className="w-10 h-10 rounded-xl bg-white shadow-sm border border-gray-100 font-bold"
                                 >
                                   -
                                 </button>
-                                <span className="w-4 text-center">
+                                <span className="w-6 text-center text-lg font-black">
                                   {serviceData[service.id] || 0}
                                 </span>
                                 <button
@@ -327,7 +439,8 @@ const SchedualPickUp = () => {
                                       (serviceData[service.id] || 0) + 1
                                     )
                                   }
-                                  className="w-8 h-8 border rounded-full"
+                                  className="w-10 h-10 rounded-xl text-white shadow-md font-bold"
+                                  style={{ backgroundColor: colors.teal }}
                                 >
                                   +
                                 </button>
@@ -336,7 +449,8 @@ const SchedualPickUp = () => {
                           )}
                           <button
                             onClick={() => setActiveConfig(null)}
-                            className="w-full bg-black text-white py-2 rounded-lg font-bold"
+                            className="w-full py-3 rounded-xl font-black text-white shadow-lg shadow-teal-900/20"
+                            style={{ backgroundColor: colors.teal }}
                           >
                             Save Selection
                           </button>
@@ -350,18 +464,19 @@ const SchedualPickUp = () => {
           )}
 
           {currentStep === 3 && (
-            <div className="animate-in fade-in duration-300">
-              <h2 className="text-xl md:text-2xl font-semibold mb-6">
-                Pickup Details
-              </h2>
-              <div className="space-y-4">
+            <div className="animate-in fade-in duration-500">
+              <h2 className="text-3xl font-bold mb-2">Your Info</h2>
+              <p className="text-gray-500 mb-8">
+                Where should we come to pick up?
+              </p>
+              <div className="space-y-5">
                 <input
                   type="text"
                   name="name"
                   placeholder="Full name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full border p-3 rounded-lg outline-none focus:border-black"
+                  className="w-full border-2 border-gray-100 p-4 rounded-xl outline-none focus:border-teal-500 transition-colors"
                 />
                 <input
                   type="tel"
@@ -369,7 +484,7 @@ const SchedualPickUp = () => {
                   placeholder="Phone number"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="w-full border p-3 rounded-lg outline-none focus:border-black"
+                  className="w-full border-2 border-gray-100 p-4 rounded-xl outline-none focus:border-teal-500 transition-colors"
                 />
                 <textarea
                   name="address"
@@ -377,53 +492,62 @@ const SchedualPickUp = () => {
                   rows={3}
                   value={formData.address}
                   onChange={handleChange}
-                  className="w-full border p-3 rounded-lg outline-none resize-none focus:border-black"
+                  className="w-full border-2 border-gray-100 p-4 rounded-xl outline-none resize-none focus:border-teal-500 transition-colors"
                 />
               </div>
             </div>
           )}
 
           {currentStep === 4 && (
-            <div className="animate-in fade-in duration-300">
-              <h2 className="text-xl md:text-2xl font-semibold mb-6">
-                Review Your Order
+            <div className="animate-in fade-in duration-500">
+              <h2 className="text-3xl font-bold mb-8 text-center">
+                Review Details
               </h2>
               <div className="space-y-4">
-                <div className="p-4 border rounded-lg flex justify-between">
+                <div className="p-6 rounded-2xl border-2 border-gray-50 bg-gray-50/50 flex justify-between items-start">
                   <div>
-                    <p className="font-bold">Contact & Address</p>
-                    <p className="text-sm">
-                      {formData.name} | {formData.phone}
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                      Contact & Address
                     </p>
-                    <p className="text-sm text-gray-600">{formData.address}</p>
+                    <p className="font-bold text-lg">{formData.name}</p>
+                    <p className="text-sm opacity-70">{formData.phone}</p>
+                    <p className="text-sm mt-2 font-medium">
+                      {formData.address}
+                    </p>
                   </div>
                   <button
                     onClick={() => setCurrentStep(3)}
-                    className="text-blue-600 text-sm underline"
+                    className="text-teal-600 font-bold text-xs hover:underline"
                   >
                     Edit
                   </button>
                 </div>
-                <div className="p-4 border rounded-lg flex justify-between">
+
+                <div className="p-6 rounded-2xl border-2 border-gray-50 bg-gray-50/50 flex justify-between items-center">
                   <div>
-                    <p className="font-bold">Schedule</p>
-                    <p className="text-sm">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                      Schedule
+                    </p>
+                    <p className="font-bold">
                       {selectedDate} at {selectedTime}
                     </p>
                   </div>
                   <button
                     onClick={() => setCurrentStep(1)}
-                    className="text-blue-600 text-sm underline"
+                    className="text-teal-600 font-bold text-xs hover:underline"
                   >
                     Edit
                   </button>
                 </div>
-                <div className="p-4 border rounded-lg">
-                  <div className="flex justify-between mb-2">
-                    <p className="font-bold">Services Selected</p>
+
+                <div className="p-6 rounded-2xl border-2 border-gray-50 bg-gray-50/50">
+                  <div className="flex justify-between items-center mb-4">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                      Order Summary
+                    </p>
                     <button
                       onClick={() => setCurrentStep(2)}
-                      className="text-blue-600 text-sm underline"
+                      className="text-teal-600 font-bold text-xs hover:underline"
                     >
                       Edit
                     </button>
@@ -437,19 +561,14 @@ const SchedualPickUp = () => {
                     return (
                       <div
                         key={serviceId}
-                        className="text-sm py-2 border-t border-gray-100"
+                        className="py-3 border-t border-gray-100"
                       >
-                        <p className="font-semibold text-black">
-                          • {service?.title} ({total} items)
+                        <p className="font-bold flex justify-between">
+                          <span>{service?.title}</span>
+                          <span style={{ color: colors.teal }}>
+                            {total} Items
+                          </span>
                         </p>
-                        {typeof serviceData[serviceId] === "object" && (
-                          <div className="pl-4 text-gray-500 text-xs italic">
-                            {Object.entries(serviceData[serviceId])
-                              .filter(([_, count]) => count > 0)
-                              .map(([name, count]) => `${name}: ${count}`)
-                              .join(", ")}
-                          </div>
-                        )}
                       </div>
                     );
                   })}
@@ -459,12 +578,24 @@ const SchedualPickUp = () => {
           )}
 
           {currentStep === 5 && (
-            <div className="text-center py-10">
-              <div className="text-6xl mb-4">✅</div>
-              <h2 className="text-2xl font-bold mb-2">Order Confirmed!</h2>
+            <div className="text-center py-10 animate-in zoom-in duration-500">
+              <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
+                ✓
+              </div>
+              <h2
+                className="text-4xl font-black mb-4"
+                style={{ color: colors.deepNavy }}
+              >
+                Order Confirmed!
+              </h2>
+              <p className="text-gray-500 mb-10 max-w-sm mx-auto">
+                We've received your request. A driver will be assigned to your
+                location shortly.
+              </p>
               <button
                 onClick={() => window.location.reload()}
-                className="mt-8 px-8 py-3 bg-black text-white rounded-full"
+                className="px-12 py-4 text-white font-black rounded-2xl shadow-xl transition-transform hover:scale-105 active:scale-95"
+                style={{ backgroundColor: colors.deepNavy }}
               >
                 Book Another
               </button>
@@ -472,17 +603,14 @@ const SchedualPickUp = () => {
           )}
 
           {currentStep < 5 && (
-            <div className="flex gap-4 mt-10">
+            <div className="flex gap-4 mt-12">
               <button
                 disabled={currentStep === 1}
                 onClick={() => setCurrentStep((p) => p - 1)}
-                className={`w-1/2 py-3 rounded-full border border-black font-medium ${
-                  currentStep === 1
-                    ? "opacity-30 cursor-not-allowed"
-                    : "hover:bg-gray-50"
-                }`}
+                className="w-1/2 py-4 rounded-2xl border-2 font-black transition-all disabled:opacity-20 flex items-center justify-center gap-2"
+                style={{ borderColor: colors.deepNavy, color: colors.deepNavy }}
               >
-                ← Back
+                <ArrowLeft size={18} /> Back
               </button>
               <button
                 disabled={
@@ -491,14 +619,33 @@ const SchedualPickUp = () => {
                   (currentStep === 3 && !isStep3Valid)
                 }
                 onClick={() => setCurrentStep((p) => p + 1)}
-                className="w-1/2 py-3 rounded-full bg-black text-white font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="w-1/2 py-4 rounded-2xl text-white font-black shadow-xl disabled:bg-gray-200 disabled:shadow-none transition-all flex items-center justify-center gap-2"
+                style={{ backgroundColor: colors.primaryBlue }}
               >
-                {currentStep === 4 ? "Confirm & Schedule" : "Continue →"}
+                {currentStep === 4 ? "Schedule Now" : "Continue"}{" "}
+                <ArrowRight size={18} />
               </button>
             </div>
           )}
         </div>
       </section>
+
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+        .animate-bounce-slow {
+          animation: float 6s ease-in-out infinite;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `,
+        }}
+      />
     </div>
   );
 };

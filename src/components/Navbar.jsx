@@ -1,108 +1,102 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { FaShoppingCart } from "react-icons/fa";
+import { ShoppingBag, Menu, X } from "lucide-react";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
-  const [onWhiteSection, setOnWhiteSection] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ["services", "orders", "works"];
-      const navHeight = 80;
-      let active = false;
-
-      sections.forEach((id) => {
-        const section = document.getElementById(id);
-        if (!section) return;
-        const rect = section.getBoundingClientRect();
-        if (rect.top <= navHeight && rect.bottom >= navHeight) {
-          active = true;
-        }
-      });
-
-      setOnWhiteSection(active);
+      setScrolled(window.scrollY > 20);
     };
-
     window.addEventListener("scroll", handleScroll);
-    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navBg = onWhiteSection ? "bg-black text-white" : "bg-white text-black";
-  const dropdownBg = onWhiteSection
-    ? "bg-white text-black"
-    : "bg-black text-white";
-  const buttonBg = onWhiteSection
-    ? "bg-white text-black"
-    : "bg-black text-white";
+  const navLinks = [
+    { name: "Home", path: "/" },
+    { name: "Service", path: "#services" },
+    { name: "About", path: "/about" },
+    { name: "Schedule Pickup", path: "/schedualpickup" },
+  ];
 
   return (
-    <>
-      <nav
-        className={`hidden md:flex fixed top-0 left-0 w-full z-50 transition-all duration-300 ${navBg}`}
-      >
-        <div className="max-w-7xl mx-auto w-full px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="font-bold text-xl tracking-wide">WASHLANE</Link>
+    <nav
+      className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 ${
+        scrolled 
+          ? "bg-white/80 backdrop-blur-lg shadow-sm py-3" 
+          : "bg-transparent py-5"
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
 
-          <ul className="flex gap-12 font-medium">
-            <li className="cursor-pointer hover:opacity-70">Services</li>
-            <li className="cursor-pointer hover:opacity-70">Pricing</li>
-            <Link
-              to="/schedualpickup"
-              className="cursor-pointer hover:opacity-70"
-            >
-              Schedule Pickup
-            </Link>
-          </ul>
-
-          <div className="flex items-center gap-6">
-            <FaShoppingCart className="text-lg cursor-pointer hover:opacity-70" />
-            <button
-              className={`px-6 py-2 rounded-full text-sm font-semibold ${buttonBg}`}
-            >
-              Login
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <div
-        className={`md:hidden fixed top-0 left-0 w-full z-50 transition-all duration-300 ${navBg}`}
-      >
-        <div className="flex items-center justify-between px-5 py-4">
-          <Link to="/" className="font-bold text-lg">WASHLANE</Link>
-
-          <div className="flex items-center gap-4">
-            <FaShoppingCart className="text-lg cursor-pointer" />
-            <button onClick={() => setOpen(!open)} className="text-2xl">
-              ☰
-            </button>
-          </div>
-        </div>
-
-        <div
-          className={`overflow-hidden transition-all duration-300 ${dropdownBg} ${
-            open ? "max-h-80" : "max-h-0"
-          }`}
+        <Link 
+          to="/" 
+          className="font-black text-2xl tracking-tighter text-[#061E29] flex items-center gap-1"
         >
-          <ul className="flex flex-col items-center gap-6 py-6 font-medium">
-            <li onClick={() => setOpen(false)}>Services</li>
-            <li onClick={() => setOpen(false)}>Pricing</li>
-            <li onClick={() => setOpen(false)}>
-              <Link to="/schedualpickup">Schedule Pickup</Link>
+          WASHLANE
+        </Link>
+
+        <ul className="hidden md:flex items-center gap-10">
+          {navLinks.map((link) => (
+            <li key={link.name}>
+              <Link
+                to={link.path}
+                className="text-sm font-bold text-[#061E29] hover:text-[#5F9598] transition-colors relative group"
+              >
+                {link.name}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#5F9598] transition-all group-hover:w-full" />
+              </Link>
             </li>
-            <button
-              className={`px-8 py-2 rounded-full text-sm font-semibold ${
-                onWhiteSection ? "bg-black text-white" : "bg-white text-black"
-              }`}
-            >
-              Login
-            </button>
-          </ul>
+          ))}
+        </ul>
+
+        <div className="hidden md:flex items-center gap-6">
+          <div className="relative cursor-pointer group">
+            <ShoppingBag className="text-[#061E29] group-hover:text-[#1D546D] transition-colors" size={22} />
+            <span className="absolute -top-2 -right-2 bg-[#5F9598] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+              0
+            </span>
+          </div>
+          <button className="bg-[#061E29] hover:bg-[#1D546D] text-white px-7 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-gray-200 active:scale-95">
+            Login
+          </button>
+        </div>
+
+        <div className="md:hidden flex items-center gap-4">
+          <ShoppingBag size={22} className="text-[#061E29]" />
+          <button 
+            onClick={() => setOpen(!open)} 
+            className="text-[#061E29] p-1"
+          >
+            {open ? <X size={28} /> : <Menu size={28} />}
+          </button>
         </div>
       </div>
-    </>
+      <div
+        className={`fixed inset-0 top-[60px] bg-white z-40 transition-transform duration-500 md:hidden ${
+          open ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <ul className="flex flex-col items-center gap-8 pt-16 px-6">
+          {navLinks.map((link) => (
+            <li key={link.name} className="w-full text-center">
+              <Link
+                to={link.path}
+                onClick={() => setOpen(false)}
+                className="text-2xl font-extrabold text-[#061E29] hover:text-[#5F9598]"
+              >
+                {link.name}
+              </Link>
+            </li>
+          ))}
+          <button className="w-full bg-[#061E29] text-white py-4 rounded-2xl font-bold text-lg mt-4">
+            Login
+          </button>
+        </ul>
+      </div>
+    </nav>
   );
 };
 
