@@ -7,9 +7,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -24,15 +22,14 @@ const Navbar = () => {
   return (
     <nav
       className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 ${
-        scrolled 
-          ? "bg-white/80 backdrop-blur-lg shadow-sm py-3" 
+        scrolled
+          ? "bg-white/80 backdrop-blur-lg shadow-sm py-3"
           : "bg-transparent py-5"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="font-black text-2xl tracking-tighter text-[#061E29] flex items-center gap-1"
         >
           WASHLANE
@@ -66,32 +63,33 @@ const Navbar = () => {
 
         <div className="md:hidden flex items-center gap-4">
           <ShoppingBag size={22} className="text-[#061E29]" />
-          <button 
-            onClick={() => setOpen(!open)} 
-            className="text-[#061E29] p-1"
-          >
+          <button onClick={() => setOpen(!open)} className="text-[#061E29] p-1">
             {open ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
       </div>
+
       <div
-        className={`fixed inset-0 top-[60px] bg-white z-40 transition-transform duration-500 md:hidden ${
+        className={`fixed inset-0 top-[60px] bg-white z-40 transition-transform duration-500 md:hidden h-80 rounded-4xl ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <ul className="flex flex-col items-center gap-8 pt-16 px-6">
+        <ul className="flex flex-col items-center gap-3 pt-5 px-6">
           {navLinks.map((link) => (
-            <li key={link.name} className="w-full text-center">
+            <li
+              key={link.name}
+              className="w-full text-center bg-[#F0F4F8] rounded-lg py-2"
+            >
               <Link
                 to={link.path}
                 onClick={() => setOpen(false)}
-                className="text-2xl font-extrabold text-[#061E29] hover:text-[#5F9598]"
+                className="text-base font-semibold text-[#061E29] hover:text-[#5F9598]"
               >
                 {link.name}
               </Link>
             </li>
           ))}
-          <button className="w-full bg-[#061E29] text-white py-4 rounded-2xl font-bold text-lg mt-4">
+          <button className="w-full bg-[#061E29] text-white py-2 rounded-xl font-bold text-base mt-4">
             Login
           </button>
         </ul>
