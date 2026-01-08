@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import Home from "./components/home"
+import Home from "./components/Home.jsx"
 import SchedualPickUp from "./components/SchedualPickUp";
 import About from "./components/About"
 import Navbar from "./components/Navbar"; 

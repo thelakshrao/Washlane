@@ -8,7 +8,7 @@ import Services from "./Services";
 import Takingorder from "./TakingOrder";
 import Footer from "./Footer";
 
-const Home = () => {
+const home = () => {
   const [currentImage, setCurrentImage] = useState(0);
   const images = [homepic1, homepic2, homepic3];
 
@@ -121,4 +121,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default home;
