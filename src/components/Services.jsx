@@ -42,9 +42,11 @@ const services = [
 
 const Services = () => {
   return (
-    <section id="services" className="bg-white py-5 px-4 sm:px-6">
+    <section id="services" className="scroll-mt-28 bg-white py-5 px-4 sm:px-6">
       <div className="text-center mb-16">
-        <span className="text-[#5F9598] font-bold tracking-widest uppercase text-sm">Pricing</span>
+        <span className="text-[#5F9598] font-bold tracking-widest uppercase text-sm">
+          Pricing
+        </span>
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#061E29] mt-3 mb-4">
           Our Services & Pricing
         </h2>
@@ -54,29 +56,41 @@ const Services = () => {
       </div>
 
       <div className="max-w-7xl mx-auto">
-        {/* Mobile Horizontal Scroll */}
         <div className="flex lg:hidden gap-6 overflow-x-auto py-4 px-2 scrollbar-hide">
           {services.map((item, index) => (
             <div
               key={index}
               className="flex-shrink-0 w-72 bg-white rounded-[2.5rem] p-6 border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-[0_20px_50px_rgba(29,84,109,0.1)] hover:-translate-y-2 flex flex-col group"
             >
-              <div className={`w-14 h-14 ${item.iconBg} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500`}>
+              <div
+                className={`w-14 h-14 ${item.iconBg} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500`}
+              >
                 {item.icon}
               </div>
 
               <div className="flex-grow">
-                <h3 className="text-xl font-black text-[#061E29] mb-2">{item.title}</h3>
-                <p className="text-[#1D546D]/60 text-sm mb-6 leading-relaxed font-medium">{item.desc}</p>
+                <h3 className="text-xl font-black text-[#061E29] mb-2">
+                  {item.title}
+                </h3>
+                <p className="text-[#1D546D]/60 text-sm mb-6 leading-relaxed font-medium">
+                  {item.desc}
+                </p>
 
                 <div className="mb-6 pt-4 border-t border-gray-50 flex items-baseline gap-1">
-                  <span className="text-2xl font-black text-[#1D546D]">{item.price}</span>
-                  <span className="text-[#5F9598] font-bold text-sm tracking-tight">{item.unit}</span>
+                  <span className="text-2xl font-black text-[#1D546D]">
+                    {item.price}
+                  </span>
+                  <span className="text-[#5F9598] font-bold text-sm tracking-tight">
+                    {item.unit}
+                  </span>
                 </div>
 
                 <ul className="space-y-3 mb-6">
                   {item.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center text-sm font-semibold text-[#061E29]/70">
+                    <li
+                      key={idx}
+                      className="flex items-center text-sm font-semibold text-[#061E29]/70"
+                    >
                       <div className="mr-3 bg-emerald-50 p-1 rounded-full">
                         <Check className="text-emerald-500 w-3 h-3 stroke-[4px]" />
                       </div>
@@ -93,29 +107,41 @@ const Services = () => {
           ))}
         </div>
 
-        {/* Desktop Grid */}
         <div className="hidden lg:grid lg:grid-cols-4 gap-8 justify-items-center">
           {services.map((item, index) => (
             <div
               key={index}
               className="w-full max-w-[320px] bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-[0_20px_50px_rgba(29,84,109,0.1)] hover:-translate-y-2 flex flex-col group"
             >
-              <div className={`w-16 h-16 ${item.iconBg} rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500`}>
+              <div
+                className={`w-16 h-16 ${item.iconBg} rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500`}
+              >
                 {item.icon}
               </div>
 
               <div className="flex-grow">
-                <h3 className="text-2xl font-black text-[#061E29] mb-3">{item.title}</h3>
-                <p className="text-[#1D546D]/60 text-sm mb-8 leading-relaxed font-medium">{item.desc}</p>
+                <h3 className="text-2xl font-black text-[#061E29] mb-3">
+                  {item.title}
+                </h3>
+                <p className="text-[#1D546D]/60 text-sm mb-8 leading-relaxed font-medium">
+                  {item.desc}
+                </p>
 
                 <div className="mb-8 pt-6 border-t border-gray-50 flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-[#1D546D]">{item.price}</span>
-                  <span className="text-[#5F9598] font-bold text-sm tracking-tight">{item.unit}</span>
+                  <span className="text-4xl font-black text-[#1D546D]">
+                    {item.price}
+                  </span>
+                  <span className="text-[#5F9598] font-bold text-sm tracking-tight">
+                    {item.unit}
+                  </span>
                 </div>
 
                 <ul className="space-y-4 mb-10">
                   {item.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center text-sm font-semibold text-[#061E29]/70">
+                    <li
+                      key={idx}
+                      className="flex items-center text-sm font-semibold text-[#061E29]/70"
+                    >
                       <div className="mr-3 bg-emerald-50 p-1 rounded-full">
                         <Check className="text-emerald-500 w-3 h-3 stroke-[4px]" />
                       </div>
