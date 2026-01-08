@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { MapPin, CheckCircle2, Sparkles, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import homepic1 from "../images/homepic1.webp";
 import homepic2 from "../images/homepic2.webp";
 import homepic3 from "../images/homepic3.webp";
@@ -8,9 +9,12 @@ import Services from "./Services";
 import Takingorder from "./TakingOrder";
 import Footer from "./Footer";
 
-const home = () => {
+const Home = () => {
   const [currentImage, setCurrentImage] = useState(0);
   const images = [homepic1, homepic2, homepic3];
+  const [initialAddress, setInitialAddress] = useState("");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -46,16 +50,48 @@ const home = () => {
                 your area.
               </p>
 
-              <div className="bg-white p-2 rounded-xl shadow-[0_16px_40px_rgba(6,30,41,0.08)] flex flex-col sm:flex-row items-center gap-2 max-w-md border border-[#F3F4F4] mb-5">
-                <div className="flex items-center gap-3 px-3 flex-grow w-full py-2">
+              <div className="bg-white p-2 rounded-xl shadow-[0_16px_40px_rgba(6,30,41,0.08)] flex flex-col sm:flex-row items-center gap-2 max-w-full sm:max-w-lg border border-[#F3F4F4] mb-5">
+                <div className="flex items-center gap-3 px-3 flex-grow w-full py-1">
+                  {" "}
+                  {/* ✅ Reduced py from 2 → 1 */}
                   <MapPin className="text-[#5F9598] w-4 h-4" />
                   <input
                     type="text"
                     placeholder="Enter your pickup area"
+                    value={initialAddress}
+                    onChange={(e) => setInitialAddress(e.target.value)}
                     className="outline-none text-[#061E29] w-full bg-transparent font-medium placeholder:text-gray-400 text-sm"
                   />
                 </div>
-                <button className="bg-[#1D546D] hover:bg-[#061E29] text-white px-6 py-3 rounded-xl font-bold transition-all w-full sm:w-auto flex items-center justify-center gap-2 group text-sm">
+
+                <button
+                  onClick={() => {
+                    navigator.geolocation.getCurrentPosition((pos) => {
+                      const { latitude, longitude } = pos.coords;
+                      setInitialAddress(
+                        `Lat ${latitude.toFixed(4)}, Lng ${longitude.toFixed(
+                          4
+                        )}`
+                      );
+                    });
+                  }}
+                  className="text-xs font-bold px-1 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 cursor-pointer"
+                >
+                  Use Current Location
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (initialAddress.trim()) {
+                      navigate("/schedualpickup", {
+                        state: { address: initialAddress },
+                      });
+                    } else {
+                      alert("Please enter your pickup address!");
+                    }
+                  }}
+                  className="bg-[#1D546D] hover:bg-[#061E29] text-white px-4 py-2 rounded-xl font-bold transition-all w-full sm:w-auto flex items-center justify-center gap-2 group text-sm cursor-pointer"
+                >
                   Book Pickup
                   <ArrowRight
                     size={14}
@@ -121,4 +157,4 @@ const home = () => {
   );
 };
 
-export default home;
+export default Home;

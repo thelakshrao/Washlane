@@ -73,7 +73,7 @@ const Navbar = () => {
             </span>
           </div>
 
-          <button className="text-[#061E29] font-bold text-sm text-white-glow active:scale-95">
+          <button className="text-[#061E29] font-bold text-sm text-white-glow active:scale-95 cursor-pointer">
             Login
           </button>
         </div>

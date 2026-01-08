@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import threeperson from "../images/three.png";
 import Footer from "./Footer";
+import { useLocation } from "react-router-dom";
 
 const SchedualPickUp = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -17,6 +18,14 @@ const SchedualPickUp = () => {
   const [timeWarning, setTimeWarning] = useState("");
   const [serviceData, setServiceData] = useState({});
   const [activeConfig, setActiveConfig] = useState(null);
+  const [deliveryType, setDeliveryType] = useState("standard");
+  const [dropDate, setDropDate] = useState("");
+  const [dropTime, setDropTime] = useState("");
+  const [dropTimeWarning, setDropTimeWarning] = useState("");
+  const [dropDateWarning, setDropDateWarning] = useState("");
+  const [showExpressNote, setShowExpressNote] = useState(false);
+  const location = useLocation();
+  const initialAddressFromHome = location.state?.address || "";
 
   const colors = {
     deepNavy: "#061E29",
@@ -28,7 +37,7 @@ const SchedualPickUp = () => {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
-    address: "",
+    address: initialAddressFromHome,
   });
 
   const servicesList = useMemo(
@@ -115,6 +124,24 @@ const SchedualPickUp = () => {
     validateTime(current);
   }, [dates]);
 
+  useEffect(() => {
+    if (selectedTime) {
+      validateTime(selectedTime);
+    }
+  }, [selectedTime, selectedDate]);
+
+  useEffect(() => {
+    if (dropTime) {
+      validateDropTime(dropTime);
+    }
+  }, [dropTime, dropDate]);
+
+  useEffect(() => {
+    if (dropDate) {
+      validateDropDate(dropDate);
+    }
+  }, [dropDate, selectedDate]);
+
   const getServiceTotal = (id) => {
     const data = serviceData[id];
     if (!data) return 0;
@@ -139,13 +166,87 @@ const SchedualPickUp = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const validateTime = (time) => {
-    const [hour, minute] = time.split(":").map(Number);
-    const numeric = hour + minute / 60;
-    if (numeric > 22)
-      setTimeWarning("Unavailable. Scheduling for tomorrow morning.");
-    else if (numeric < 8) setTimeWarning("Available between 8 AM to 10 PM.");
-    else setTimeWarning("");
+    if (!selectedDate) return;
+
+    const now = new Date();
+    const today = now.toISOString().split("T")[0];
+
+    const [selHour, selMin] = time.split(":").map(Number);
+    const curHour = now.getHours();
+    const curMin = now.getMinutes();
+
+    if (selectedDate === today) {
+      if (selHour < curHour || (selHour === curHour && selMin < curMin)) {
+        setTimeWarning(
+          "We don't Deliver in Past. Please select a future time."
+        );
+        return;
+      }
+    }
+
+    if (selHour < 8 || selHour >= 22) {
+      setTimeWarning("Available between 8 AM to 10 PM.");
+      return;
+    }
+
+    setTimeWarning("");
   };
+
+  const validateDropTime = (time) => {
+    if (!dropDate || !selectedDate) return;
+
+    const now = new Date();
+    const today = now.toISOString().split("T")[0];
+
+    const [dropHour, dropMin] = time.split(":").map(Number);
+    const curHour = now.getHours();
+    const curMin = now.getMinutes();
+
+    if (dropDate === selectedDate && dropDate === today) {
+      if (dropHour < curHour || (dropHour === curHour && dropMin < curMin)) {
+        setDropTimeWarning(
+          "We don’t deliver in the past. Please select a future time."
+        );
+        return;
+      }
+    }
+
+    setDropTimeWarning("");
+  };
+
+  const validateDropDate = (date) => {
+    if (!date) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const selectedDropDate = new Date(date);
+    selectedDropDate.setHours(0, 0, 0, 0);
+
+    if (selectedDropDate < today) {
+      setDropDateWarning(
+        "We don’t deliver on past dates. Please select a future date."
+      );
+      return;
+    }
+
+    if (selectedDropDate < new Date(selectedDate)) {
+      setDropDateWarning("Drop date cannot be before pickup date.");
+      return;
+    }
+
+    setDropDateWarning("");
+  };
+
+  useEffect(() => {
+    if (deliveryType === "standard" && selectedDate) {
+      const nextDay = new Date(selectedDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+
+      setDropDate(nextDay.toISOString().split("T")[0]);
+      setDropTime(selectedTime);
+    }
+  }, [deliveryType, selectedDate, selectedTime]);
 
   const isStep3Valid =
     formData.name.trim() && formData.phone.trim() && formData.address.trim();
@@ -299,6 +400,121 @@ const SchedualPickUp = () => {
                     </p>
                   )}
                 </div>
+
+                <div className="mt-8">
+                  <p className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">
+                    Delivery Type
+                  </p>
+
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => {
+                        setDeliveryType("standard");
+                        setShowExpressNote(false);
+                      }}
+                      className={`flex-1 py-4 rounded-xl font-bold transition-all ${
+                        deliveryType === "standard"
+                          ? "text-white shadow-lg"
+                          : "bg-white border-2 border-gray-200 text-gray-500"
+                      }`}
+                      style={{
+                        backgroundColor:
+                          deliveryType === "standard"
+                            ? colors.primaryBlue
+                            : "white",
+                      }}
+                    >
+                      Standard Delivery
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setDeliveryType("express");
+                        setShowExpressNote(true);
+                      }}
+                      className={`flex-1 py-4 rounded-xl font-bold transition-all ${
+                        deliveryType === "express"
+                          ? "text-white shadow-lg"
+                          : "bg-white border-2 border-gray-200 text-gray-500"
+                      }`}
+                      style={{
+                        backgroundColor:
+                          deliveryType === "express"
+                            ? colors.primaryBlue
+                            : "white",
+                      }}
+                    >
+                      Express Delivery
+                    </button>
+                  </div>
+
+                  {deliveryType === "express" && showExpressNote && (
+                    <div className="mt-6 p-5 rounded-2xl bg-gradient-to-r from-[#1D546D] to-[#5F9598] text-white animate-in fade-in slide-in-from-bottom-3 duration-500">
+                      <h4 className="text-lg font-black mb-1">
+                        Express Delivery Activated
+                      </h4>
+                      <p className="text-sm opacity-90">
+                        Your clothes will be picked up and delivered within
+                      </p>
+                      <p className="text-xl font-black mt-1">2 – 3 Hours</p>
+                    </div>
+                  )}
+                </div>
+
+                {deliveryType === "standard" && (
+                  <div className="mt-8 animate-in fade-in slide-in-from-bottom-3 duration-500">
+                    <h2
+                      className="text-3xl font-bold mb-2"
+                      style={{ color: colors.deepNavy }}
+                    >
+                      Schedule Drop
+                    </h2>
+                    <p className="text-gray-500 mb-8">
+                      Select your preferred date and time for Delivery
+                    </p>
+
+                    <div className="mb-4">
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        Drop Date
+                      </label>
+                      <input
+                        type="date"
+                        value={dropDate}
+                        min={selectedDate}
+                        onChange={(e) => {
+                          setDropDate(e.target.value);
+                          validateDropDate(e.target.value);
+                        }}
+                        className="p-4 rounded-xl border-2 border-gray-100 w-full"
+                      />
+                      {dropDateWarning && (
+                        <p className="text-sm text-red-500 mt-3 font-semibold flex items-center gap-2">
+                          ⚠️ {dropDateWarning}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        Drop Time
+                      </label>
+                      <input
+                        type="time"
+                        value={dropTime}
+                        onChange={(e) => {
+                          setDropTime(e.target.value);
+                          validateDropTime(e.target.value);
+                        }}
+                        className="p-4 rounded-xl border-2 border-gray-100 w-full"
+                      />
+                      {dropTimeWarning && (
+                        <p className="text-sm text-red-500 mt-3 font-semibold flex items-center gap-2">
+                          ⚠️ {dropTimeWarning}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -530,15 +746,29 @@ const SchedualPickUp = () => {
                     </button>
                   </div>
 
-                  <div className="p-6 rounded-2xl border-2 border-gray-50 bg-gray-50/50 flex justify-between items-center">
+                  <div className="p-6 rounded-2xl border-2 border-gray-50 bg-gray-50/50 flex justify-between items-start">
                     <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
                         Schedule
                       </p>
+
                       <p className="font-bold">
-                        {selectedDate} at {selectedTime}
+                        Pickup: {selectedDate} at {selectedTime}
                       </p>
+
+                      {deliveryType === "standard" && (
+                        <p className="font-bold mt-2">
+                          Delivery: {dropDate} at {dropTime}
+                        </p>
+                      )}
+
+                      {deliveryType === "express" && (
+                        <p className="font-bold mt-2 text-teal-700">
+                          Express Delivery (2–3 Hours)
+                        </p>
+                      )}
                     </div>
+
                     <button
                       onClick={() => setCurrentStep(1)}
                       className="text-teal-600 font-bold text-xs hover:underline"
@@ -624,7 +854,11 @@ const SchedualPickUp = () => {
                 </button>
                 <button
                   disabled={
-                    (currentStep === 1 && (timeWarning || !selectedTime)) ||
+                    (currentStep === 1 &&
+                      (timeWarning ||
+                        !selectedTime ||
+                        (deliveryType === "standard" &&
+                          (dropDateWarning || dropTimeWarning)))) ||
                     (currentStep === 2 && !hasAtLeastOneItem) ||
                     (currentStep === 3 && !isStep3Valid)
                   }
@@ -639,23 +873,6 @@ const SchedualPickUp = () => {
             )}
           </div>
         </section>
-
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-        .animate-bounce-slow {
-          animation: float 6s ease-in-out infinite;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-      `,
-          }}
-        />
       </div>
       <Footer />
     </>
