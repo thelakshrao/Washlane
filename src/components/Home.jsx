@@ -31,7 +31,7 @@ const Home = () => {
     }
 
     setLoadingLocation(true);
-    setInitialAddress("Detecting your location...");
+    setInitialAddress("Detecting location...");
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -39,27 +39,34 @@ const Home = () => {
 
         try {
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1&zoom=18`
           );
 
           const data = await response.json();
+          const addr = data.address || {};
 
-          setInitialAddress(
-            data.display_name ||
-              `Lat ${latitude.toFixed(4)}, Lng ${longitude.toFixed(4)}`
-          );
-        } catch (error) {
-          setInitialAddress(
-            `Lat ${latitude.toFixed(4)}, Lng ${longitude.toFixed(4)}`
-          );
+          const finalAddress = [
+            addr.house_number,
+            addr.suburb || addr.neighbourhood || addr.residential,
+            addr.road,
+            addr.city || addr.town || addr.city_district,
+            addr.state,
+            addr.postcode,
+            addr.country,
+          ]
+            .filter(Boolean)
+            .join(", ");
+
+          setInitialAddress(finalAddress || "Unable to detect address");
+        } catch {
+          setInitialAddress("Unable to detect address");
         } finally {
           setLoadingLocation(false);
         }
       },
-      (error) => {
+      () => {
         setLoadingLocation(false);
-        setInitialAddress("");
-        alert("Please allow location access to continue");
+        alert("Please enable GPS and try again");
       },
       {
         enableHighAccuracy: true,
@@ -75,11 +82,10 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 
-            {/* LEFT */}
             <div>
               <div className="flex items-center gap-2 bg-[#1D546D]/10 text-[#1D546D] px-3 py-1 rounded-full w-fit mb-3 text-xs font-bold">
                 <Sparkles size={14} />
-                Premium Care for Your Clothes
+                Sector 11 & Heera Nagar Specialist
               </div>
 
               <h1 className="text-4xl md:text-5xl font-extrabold text-[#061E29] mb-4">
@@ -87,18 +93,12 @@ const Home = () => {
                 <span className="text-[#1D546D]">Delivered</span> to Your Doorstep
               </h1>
 
-              <p className="text-[#1D546D]/70 mb-6 max-w-md">
-                Professional cleaning with free pickup & delivery, starting in
-                your area.
-              </p>
-
-              {/* LOCATION BOX */}
               <div className="bg-white p-2 rounded-xl shadow-lg flex flex-col sm:flex-row gap-2 max-w-lg border mb-5">
                 <div className="flex items-center gap-2 px-3 flex-grow">
                   <MapPin className="text-[#5F9598] w-4 h-4" />
                   <input
                     type="text"
-                    placeholder="Enter your pickup area"
+                    placeholder="Enter or detect your address"
                     value={initialAddress}
                     onChange={(e) => setInitialAddress(e.target.value)}
                     className="w-full outline-none text-sm bg-transparent"
@@ -108,7 +108,7 @@ const Home = () => {
                 <button
                   onClick={getCurrentLocation}
                   disabled={loadingLocation}
-                  className="text-xs font-bold px-3 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
+                  className="whitespace-nowrap text-xs font-bold px-3 py-2 rounded-lg border text-gray-600 hover:bg-gray-100 disabled:opacity-50"
                 >
                   {loadingLocation ? "Locating..." : "Use Current Location"}
                 </button>
@@ -116,7 +116,7 @@ const Home = () => {
                 <button
                   onClick={() => {
                     if (!initialAddress.trim()) {
-                      alert("Please enter your pickup address");
+                      alert("Please provide an address");
                       return;
                     }
                     navigate("/schedualpickup", {
@@ -125,38 +125,30 @@ const Home = () => {
                   }}
                   className="bg-[#1D546D] hover:bg-[#061E29] text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 text-sm"
                 >
-                  Book Pickup
+                  Book
                   <ArrowRight size={14} />
                 </button>
               </div>
 
-              {/* FEATURES */}
               <div className="flex gap-4 flex-wrap">
-                {["Same-day pickup", "Affordable pricing", "100% hygienic"].map(
-                  (item, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm">
-                      <CheckCircle2 className="w-4 h-4 text-[#5F9598]" />
-                      <span className="font-semibold text-[#061E29]/80">
-                        {item}
-                      </span>
-                    </div>
-                  )
-                )}
+                {["Free Pickup", "Gurgaon Special", "100% Hygienic"].map((item, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-[#5F9598]" />
+                    <span className="font-semibold text-[#061E29]/80">{item}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* RIGHT IMAGE */}
             <div className="relative">
               <div className="relative w-full max-w-md mx-auto aspect-[4/3] rounded-3xl overflow-hidden shadow-xl">
                 {images.map((img, index) => (
                   <img
                     key={index}
                     src={img}
-                    alt=""
+                    alt="Laundry Service"
                     className={`absolute inset-0 w-full h-full object-cover transition-all duration-3000 ${
-                      index === currentImage
-                        ? "opacity-100 scale-100"
-                        : "opacity-0 scale-110"
+                      index === currentImage ? "opacity-100 scale-100" : "opacity-0 scale-110"
                     }`}
                   />
                 ))}
