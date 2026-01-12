@@ -1,17 +1,43 @@
 import React, { useEffect, useState } from "react";
 import { HashLink } from "react-router-hash-link";
 import { Link } from "react-router-dom";
-import { ShoppingBag, Menu, X } from "lucide-react";
+import {
+  ShoppingBag,
+  Menu,
+  X,
+  ChevronDown,
+  User,
+  LogOut,
+  MapPin,
+} from "lucide-react";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [step, setStep] = useState(1);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState({ name: "", phone: "" });
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleLoginSubmit = (e) => {
+    e.preventDefault();
+    setStep(2);
+  };
+
+  const handleOtpSubmit = (e) => {
+    e.preventDefault();
+    setIsLoggedIn(true);
+    setShowModal(false);
+    setStep(1);
+    console.log("Customer Details:", user);
+  };
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -29,10 +55,9 @@ const Navbar = () => {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-
         <Link
           to="/"
-          className="font-black text-2xl tracking-tighter text-[#061E29] text-white-glow active:scale-95 transition-transform"
+          className="font-black text-2xl tracking-tighter text-[#061E29] active:scale-95 transition-transform"
         >
           WASHLANE
         </Link>
@@ -40,86 +65,117 @@ const Navbar = () => {
         <ul className="hidden md:flex items-center gap-10">
           {navLinks.map((link) => (
             <li key={link.name}>
-              {link.hash ? (
-                <HashLink
-                  smooth
-                  to={link.path}
-                  className="text-sm font-bold text-[#061E29] hover:text-[#5F9598] transition-colors relative group text-white-glow active:scale-95"
-                >
-                  {link.name}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#5F9598] transition-all group-hover:w-full" />
-                </HashLink>
-              ) : (
-                <Link
-                  to={link.path}
-                  className="text-sm font-bold text-[#061E29] hover:text-[#5F9598] transition-colors relative group text-white-glow active:scale-95"
-                >
-                  {link.name}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#5F9598] transition-all group-hover:w-full" />
-                </Link>
-              )}
+              <Link
+                to={link.path}
+                className="text-sm font-bold text-[#061E29] hover:text-[#5F9598] transition-colors"
+              >
+                {link.name}
+              </Link>
             </li>
           ))}
         </ul>
 
         <div className="hidden md:flex items-center gap-6">
-          <div className="relative cursor-pointer group">
-            <ShoppingBag
-              size={22}
-              className="text-[#061E29] group-hover:text-[#1D546D] transition-colors"
-            />
-            <span className="absolute -top-2 -right-2 bg-[#5F9598] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-              0
-            </span>
-          </div>
+          <ShoppingBag size={22} className="text-[#061E29] cursor-pointer" />
 
-          <button className="text-[#061E29] font-bold text-sm text-white-glow active:scale-95 cursor-pointer">
-            Login
-          </button>
-        </div>
+          {!isLoggedIn ? (
+            <button
+              onClick={() => setShowModal(true)}
+              className="text-[#061E29] font-bold text-sm active:scale-95"
+            >
+              Login
+            </button>
+          ) : (
+            <div className="relative">
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="flex items-center gap-1 text-[#061E29] font-bold text-sm bg-white border px-3 py-2 rounded-lg"
+              >
+                {user.name}'s Account <ChevronDown size={14} />
+              </button>
 
-        <div className="md:hidden flex items-center gap-4">
-          <ShoppingBag size={22} className="text-[#061E29]" />
-          <button onClick={() => setOpen(!open)} className="text-[#061E29]">
-            {open ? <X size={28} /> : <Menu size={28} />}
-          </button>
-        </div>
-      </div>
-
-      <div
-        className={`fixed inset-0 top-20 bg-white z-40 transition-transform duration-500 md:hidden h-80 rounded-4xl ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <ul className="flex flex-col items-center gap-3 pt-5 px-6">
-          {navLinks.map((link) => (
-            <li key={link.name} className="w-full text-center py-2">
-              {link.hash ? (
-                <HashLink
-                  smooth
-                  to={link.path}
-                  onClick={() => setOpen(false)}
-                  className="text-base font-semibold text-[#061E29] hover:text-[#5F9598]"
-                >
-                  {link.name}
-                </HashLink>
-              ) : (
-                <Link
-                  to={link.path}
-                  onClick={() => setOpen(false)}
-                  className="text-base font-semibold text-[#061E29] hover:text-[#5F9598]"
-                >
-                  {link.name}
-                </Link>
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white shadow-xl rounded-xl border border-gray-100 p-2">
+                  <div className="px-3 py-2 mb-1">
+                    <p className="text-sm font-bold text-[#061E29]">
+                      {user.name}
+                    </p>
+                    <p className="text-[10px] text-gray-400">{user.phone}</p>
+                  </div>
+                  <hr className="mb-1" />
+                  <button className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+                    <MapPin size={14} /> Saved Address
+                  </button>
+                  <button
+                    onClick={() => setIsLoggedIn(false)}
+                    className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg font-medium"
+                  >
+                    <LogOut size={14} /> Logout
+                  </button>
+                </div>
               )}
-            </li>
-          ))}
-
-          <button className="w-full text-[#061E29] font-bold text-base mt-4">
-            Login
-          </button>
-        </ul>
+            </div>
+          )}
+        </div>
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            onClick={() => setShowModal(false)}
+          />
+          <div className="relative bg-white w-full max-w-[360px] rounded-3xl p-8 shadow-2xl">
+            <h2 className="text-2xl font-black text-[#061E29] text-center mb-1">
+              WashLane
+            </h2>
+            <p className="text-gray-500 text-xs text-center mb-8">
+              Premium Laundry Services
+            </p>
+
+            {step === 1 ? (
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Your Name"
+                  required
+                  className="w-full border rounded-xl p-3 outline-none focus:border-[#5F9598]"
+                  onChange={(e) => setUser({ ...user, name: e.target.value })}
+                />
+                <input
+                  type="tel"
+                  placeholder="WhatsApp Number"
+                  required
+                  className="w-full border rounded-xl p-3 outline-none focus:border-[#5F9598]"
+                  onChange={(e) => setUser({ ...user, phone: e.target.value })}
+                />
+                <button
+                  type="submit"
+                  className="w-full bg-[#061E29] text-white font-bold p-3 rounded-xl"
+                >
+                  Send OTP
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleOtpSubmit} className="space-y-4">
+                <p className="text-sm text-center">Confirming {user.phone}</p>
+                <input
+                  type="text"
+                  placeholder="Enter OTP"
+                  required
+                  className="w-full border rounded-xl p-3 text-center tracking-[0.5em] text-xl"
+                />
+                <button
+                  type="submit"
+                  className="w-full bg-[#061E29] text-white font-bold p-3 rounded-xl"
+                >
+                  Verify & Login
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
