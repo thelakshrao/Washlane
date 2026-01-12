@@ -26,6 +26,7 @@ const SchedualPickUp = () => {
   const [showExpressNote, setShowExpressNote] = useState(false);
   const location = useLocation();
   const initialAddressFromHome = location.state?.address || "";
+  const preSelectedService = location.state?.selectedService || null;
 
   const colors = {
     deepNavy: "#061E29",
@@ -97,6 +98,14 @@ const SchedualPickUp = () => {
     ],
     []
   );
+
+  const serviceTitleToId = useMemo(() => {
+    const map = {};
+    servicesList.forEach((s) => {
+      map[s.title] = s.id;
+    });
+    return map;
+  }, [servicesList]);
 
   const dates = useMemo(() => {
     const result = [];
@@ -247,6 +256,15 @@ const SchedualPickUp = () => {
       setDropTime(selectedTime);
     }
   }, [deliveryType, selectedDate, selectedTime]);
+
+  useEffect(() => {
+    if (currentStep === 2 && preSelectedService) {
+      const serviceId = serviceTitleToId[preSelectedService];
+      if (serviceId) {
+        setActiveConfig(serviceId);
+      }
+    }
+  }, [currentStep, preSelectedService, serviceTitleToId]);
 
   const isStep3Valid =
     formData.name.trim() && formData.phone.trim() && formData.address.trim();

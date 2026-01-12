@@ -1,24 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { HashLink } from "react-router-hash-link";
-import { Link } from "react-router-dom";
-import {
-  ShoppingBag,
-  Menu,
-  X,
-  ChevronDown,
-  User,
-  LogOut,
-  MapPin,
-} from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { ShoppingBag, Menu, X } from "lucide-react";
 
 const Navbar = () => {
-  const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [step, setStep] = useState(1);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState({ name: "", phone: "" });
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const location = useLocation();
+
+  const isSchedulePage = location.pathname === "/schedualpickup";
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -26,157 +16,104 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLoginSubmit = (e) => {
-    e.preventDefault();
-    setStep(2);
-  };
-
-  const handleOtpSubmit = (e) => {
-    e.preventDefault();
-    setIsLoggedIn(true);
-    setShowModal(false);
-    setStep(1);
-    console.log("Customer Details:", user);
-  };
-
-  const navLinks = [
-    { name: "Home", path: "/" },
-    { name: "Services", path: "/#services", hash: true },
-    { name: "About", path: "/about" },
-    { name: "Schedule Pickup", path: "/schedualpickup" },
-  ];
+  const textColor =
+    isSchedulePage && !scrolled ? "text-white" : "text-[#061E29]";
 
   return (
-    <nav
-      className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 ${
-        scrolled
-          ? "bg-white/80 backdrop-blur-lg shadow-sm py-3"
-          : "bg-transparent py-5"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <Link
-          to="/"
-          className="font-black text-2xl tracking-tighter text-[#061E29] active:scale-95 transition-transform"
-        >
-          WASHLANE
-        </Link>
+    <>
+      <nav
+        className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 ${
+          scrolled ? "bg-white shadow-sm py-3" : "bg-transparent py-5"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
 
-        <ul className="hidden md:flex items-center gap-10">
-          {navLinks.map((link) => (
-            <li key={link.name}>
-              <Link
-                to={link.path}
-                className="text-sm font-bold text-[#061E29] hover:text-[#5F9598] transition-colors"
-              >
-                {link.name}
+          <h2
+            to="/"
+            className={`font-black text-2xl transition-colors cursor-alias ${textColor}`}
+          >
+            WASHLANE
+          </h2>
+
+          <ul className="hidden md:flex items-center gap-10">
+            <li>
+              <Link to="/" className={`nav-link ${textColor}`}>
+                Home
               </Link>
             </li>
-          ))}
-        </ul>
+            <li>
+              <HashLink smooth to="/#services" className={`nav-link ${textColor}`}>
+                Services
+              </HashLink>
+            </li>
+            <li>
+              <Link to="/about" className={`nav-link ${textColor}`}>
+                About
+              </Link>
+            </li>
+            <li>
+              <Link to="/schedualpickup" className={`nav-link ${textColor}`}>
+                Schedule Pickup
+              </Link>
+            </li>
+          </ul>
 
-        <div className="hidden md:flex items-center gap-6">
-          <ShoppingBag size={22} className="text-[#061E29] cursor-pointer" />
+          <div className="flex items-center cursor-pointer gap-4">
+            <ShoppingBag size={22} className={textColor} />
 
-          {!isLoggedIn ? (
-            <button
-              onClick={() => setShowModal(true)}
-              className="text-[#061E29] font-bold text-sm active:scale-95"
-            >
+            <button className={`hidden md:block text-sm cursor-pointer font-bold ${textColor}`}>
               Login
             </button>
-          ) : (
-            <div className="relative">
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-1 text-[#061E29] font-bold text-sm bg-white border px-3 py-2 rounded-lg"
-              >
-                {user.name}'s Account <ChevronDown size={14} />
-              </button>
 
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white shadow-xl rounded-xl border border-gray-100 p-2">
-                  <div className="px-3 py-2 mb-1">
-                    <p className="text-sm font-bold text-[#061E29]">
-                      {user.name}
-                    </p>
-                    <p className="text-[10px] text-gray-400">{user.phone}</p>
-                  </div>
-                  <hr className="mb-1" />
-                  <button className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
-                    <MapPin size={14} /> Saved Address
-                  </button>
-                  <button
-                    onClick={() => setIsLoggedIn(false)}
-                    className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg font-medium"
-                  >
-                    <LogOut size={14} /> Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {showModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-            onClick={() => setShowModal(false)}
-          />
-          <div className="relative bg-white w-full max-w-[360px] rounded-3xl p-8 shadow-2xl">
-            <h2 className="text-2xl font-black text-[#061E29] text-center mb-1">
-              WashLane
-            </h2>
-            <p className="text-gray-500 text-xs text-center mb-8">
-              Premium Laundry Services
-            </p>
-
-            {step === 1 ? (
-              <form onSubmit={handleLoginSubmit} className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Your Name"
-                  required
-                  className="w-full border rounded-xl p-3 outline-none focus:border-[#5F9598]"
-                  onChange={(e) => setUser({ ...user, name: e.target.value })}
-                />
-                <input
-                  type="tel"
-                  placeholder="WhatsApp Number"
-                  required
-                  className="w-full border rounded-xl p-3 outline-none focus:border-[#5F9598]"
-                  onChange={(e) => setUser({ ...user, phone: e.target.value })}
-                />
-                <button
-                  type="submit"
-                  className="w-full bg-[#061E29] text-white font-bold p-3 rounded-xl"
-                >
-                  Send OTP
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleOtpSubmit} className="space-y-4">
-                <p className="text-sm text-center">Confirming {user.phone}</p>
-                <input
-                  type="text"
-                  placeholder="Enter OTP"
-                  required
-                  className="w-full border rounded-xl p-3 text-center tracking-[0.5em] text-xl"
-                />
-                <button
-                  type="submit"
-                  className="w-full bg-[#061E29] text-white font-bold p-3 rounded-xl"
-                >
-                  Verify & Login
-                </button>
-              </form>
-            )}
+            <button
+              onClick={() => setOpen(!open)}
+              className={`md:hidden ${textColor}`}
+            >
+              {open ? <X size={26} /> : <Menu size={26} />}
+            </button>
           </div>
         </div>
+      </nav>
+
+      {open && (
+        <div className="fixed top-[72px] left-0 w-full bg-white z-[90] shadow-lg md:hidden">
+          <ul className="flex flex-col divide-y">
+            <li>
+              <Link to="/" onClick={() => setOpen(false)} className="mobile-link">
+                Home
+              </Link>
+            </li>
+            <li>
+              <HashLink
+                smooth
+                to="/#services"
+                onClick={() => setOpen(false)}
+                className="mobile-link"
+              >
+                Services
+              </HashLink>
+            </li>
+            <li>
+              <Link to="/about" onClick={() => setOpen(false)} className="mobile-link">
+                About
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/schedualpickup"
+                onClick={() => setOpen(false)}
+                className="mobile-link"
+              >
+                Schedule Pickup
+              </Link>
+            </li>
+            <li>
+              <button className="mobile-link font-bold">Login</button>
+            </li>
+          </ul>
+        </div>
       )}
-    </nav>
+    </>
   );
 };
 

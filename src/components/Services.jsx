@@ -1,5 +1,6 @@
 import React from "react";
 import { Shirt, Sparkles, Ribbon, Bed, Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const services = [
   {
@@ -41,6 +42,8 @@ const services = [
 ];
 
 const Services = () => {
+  const navigate = useNavigate();
+
   return (
     <section id="services" className="scroll-mt-28 bg-white py-5 px-4 sm:px-6">
       <div className="text-center mb-16">
@@ -100,7 +103,14 @@ const Services = () => {
                 </ul>
               </div>
 
-              <button className="w-full py-3 px-6 bg-[#061E29] hover:bg-[#1D546D] text-white font-bold rounded-2xl transition-all shadow-lg shadow-gray-200 active:scale-95">
+              <button
+                onClick={() =>
+                  navigate("/schedualpickup", {
+                    state: { selectedService: item.title },
+                  })
+                }
+                className="w-full py-3 px-6 bg-[#061E29] hover:bg-[#1D546D] text-white font-bold rounded-2xl transition-all shadow-lg active:scale-95"
+              >
                 Select Service
               </button>
             </div>
@@ -151,7 +161,14 @@ const Services = () => {
                 </ul>
               </div>
 
-              <button className="w-full py-4 px-6 bg-[#061E29] hover:bg-[#1D546D] text-white font-bold rounded-2xl transition-all shadow-lg shadow-gray-200 active:scale-95">
+              <button
+                onClick={() =>
+                  navigate("/schedualpickup", {
+                    state: { selectedService: item.title },
+                  })
+                }
+                className="w-full py-3 px-6 bg-[#061E29] hover:bg-[#1D546D] text-white font-bold rounded-2xl transition-all shadow-lg active:scale-95"
+              >
                 Select Service
               </button>
             </div>
