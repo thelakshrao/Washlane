@@ -9,7 +9,7 @@ const TakingOrder = () => {
       id="orders"
       className="w-full flex justify-center items-center py-20 px-6 bg-white"
     >
-      <div className="md:hidden w-full rounded-[2.5rem] overflow-hidden shadow-2xl relative h-[500px]">
+      <div className="md:hidden w-full rounded-[2.5rem] overflow-hidden shadow-2xl relative h-auto">
         <div
           className="absolute inset-0 transition-transform duration-700 hover:scale-110"
           style={{
@@ -40,7 +40,7 @@ const TakingOrder = () => {
       </div>
 
       <div
-        className="hidden md:flex group relative w-full max-w-7xl h-[450px] rounded-[3rem]
+        className="hidden md:flex group relative w-full max-w-7xl h-105 rounded-[3rem]
         overflow-hidden items-center transition-all duration-700 shadow-2xl"
       >
         <div 

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { MapPin, CheckCircle2, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import homepic1 from "../images/homepic1.webp";
@@ -14,6 +15,7 @@ const home = () => {
   const [initialAddress, setInitialAddress] = useState("");
   const images = [homepic1, homepic2, homepic3];
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const interval = setInterval(
@@ -23,10 +25,24 @@ const home = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const scrollTo = params.get("scroll");
+
+    if (scrollTo === "services") {
+      const el = document.getElementById("services");
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      }
+    }
+  }, [location]);
+
   const features = ["Same-day pickup", "Affordable pricing", "100% hygienic"];
   return (
     <>
-      <section className="bg-[#F3F4F4] pt-16 pb-12">
+      <section className="bg-[#F3F4F4] pt-30 pb-12">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div>
@@ -76,7 +92,7 @@ const home = () => {
               </div>
             </div>
 
-            <div className="relative mx-auto w-full max-w-md aspect-[4/3] bg-white rounded-3xl overflow-hidden shadow">
+            <div className="relative mx-auto w-full max-w-md aspect-4/3 bg-white rounded-3xl overflow-hidden shadow">
               {images.map((img, i) => (
                 <img
                   key={i}

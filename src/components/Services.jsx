@@ -45,8 +45,8 @@ const Services = () => {
   const navigate = useNavigate();
 
   return (
-    <section id="services" className="scroll-mt-28 bg-white py-5 px-4 sm:px-6">
-      <div className="text-center mb-16">
+    <section className="scroll-mt-28 bg-white py-8 px-4 sm:px-6">
+      <div id="services" className="text-center mb-10 pt-8">
         <span className="text-[#5F9598] font-bold tracking-widest uppercase text-sm">
           Pricing
         </span>
@@ -63,23 +63,24 @@ const Services = () => {
           {services.map((item, index) => (
             <div
               key={index}
-              className="flex-shrink-0 w-72 bg-white rounded-[2.5rem] p-6 border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-[0_20px_50px_rgba(29,84,109,0.1)] hover:-translate-y-2 flex flex-col group"
+              className="shrink-0 w-[85vw] max-w-[320px] bg-white rounded-[2.5rem] p-6 border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-[0_20px_50px_rgba(29,84,109,0.1)] hover:-translate-y-2 flex flex-col"
             >
               <div
-                className={`w-14 h-14 ${item.iconBg} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500`}
+                className={`w-14 h-14 ${item.iconBg} rounded-2xl flex items-center justify-center mb-6`}
               >
                 {item.icon}
               </div>
 
-              <div className="flex-grow">
-                <h3 className="text-xl font-black text-[#061E29] mb-2">
+              <div className="w-full flex-1">
+                <h3 className="text-lg font-black text-[#061E29] mb-2">
                   {item.title}
                 </h3>
-                <p className="text-[#1D546D]/60 text-sm mb-6 leading-relaxed font-medium">
+
+                <p className="text-[#1D546D]/60 text-sm mb-5 leading-relaxed font-medium">
                   {item.desc}
                 </p>
 
-                <div className="mb-6 pt-4 border-t border-gray-50 flex items-baseline gap-1">
+                <div className="mb-5 pt-3 border-t border-gray-100 flex items-baseline gap-1">
                   <span className="text-2xl font-black text-[#1D546D]">
                     {item.price}
                   </span>
@@ -88,7 +89,7 @@ const Services = () => {
                   </span>
                 </div>
 
-                <ul className="space-y-3 mb-6">
+                <ul className="space-y-2 mb-6">
                   {item.features.map((feature, idx) => (
                     <li
                       key={idx}
@@ -121,15 +122,15 @@ const Services = () => {
           {services.map((item, index) => (
             <div
               key={index}
-              className="w-full max-w-[320px] bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-[0_20px_50px_rgba(29,84,109,0.1)] hover:-translate-y-2 flex flex-col group"
+              className="w-full max-w-[320px] bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-[0_20px_50px_rgba(29,84,109,0.1)] hover:-translate-y-2 flex flex-col"
             >
               <div
-                className={`w-16 h-16 ${item.iconBg} rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500`}
+                className={`w-16 h-16 ${item.iconBg} rounded-2xl flex items-center justify-center mb-8`}
               >
                 {item.icon}
               </div>
 
-              <div className="flex-grow">
+              <div className="flex-1">
                 <h3 className="text-2xl font-black text-[#061E29] mb-3">
                   {item.title}
                 </h3>

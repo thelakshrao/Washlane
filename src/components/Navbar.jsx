@@ -113,10 +113,16 @@ const Navbar = () => {
     setShowDropdown(false);
   };
 
+  const handleSamePageClick = (path) => {
+    if (location.pathname === path) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 ${
+        className={`fixed top-0 left-0 w-full z-100 transition-all duration-300 ${
           scrolled ? "bg-white shadow-sm py-3" : "bg-transparent py-5"
         }`}
       >
@@ -127,27 +133,28 @@ const Navbar = () => {
             WASHLANE
           </h2>
 
-          <ul className="hidden md:flex items-center gap-6">
+          <ul className="hidden md:flex items-center gap-6 ">
             <li>
               <Link
                 to="/"
+                onClick={() => handleSamePageClick("/")}
                 className={`${textColor} text-xs font-semibold uppercase tracking-wider hover:opacity-70 transition`}
               >
                 Home
               </Link>
             </li>
             <li>
-              <HashLink
-                smooth
-                to="/#services"
+              <Link
+                to="/?scroll=services"
                 className={`${textColor} text-xs font-semibold uppercase tracking-wider hover:opacity-70 transition`}
               >
                 Services
-              </HashLink>
+              </Link>
             </li>
             <li>
               <Link
                 to="/about"
+                onClick={() => handleSamePageClick("/about")}
                 className={`${textColor} text-xs font-semibold uppercase tracking-wider hover:opacity-70 transition`}
               >
                 About
@@ -156,6 +163,7 @@ const Navbar = () => {
             <li>
               <Link
                 to="/schedualpickup"
+                onClick={() => handleSamePageClick("/schedualpickup")}
                 className={`${textColor} text-xs font-semibold uppercase tracking-wider hover:opacity-70 transition`}
               >
                 Schedule Pickup
@@ -209,31 +217,36 @@ const Navbar = () => {
       </nav>
 
       {open && (
-        <div className="fixed top-[72px] left-0 w-full bg-white z-[90] md:hidden">
+        <div className="fixed top-14 left-0 w-full bg-white z-90 md:hidden">
           <ul className="flex flex-col items-center py-8 gap-6">
             <li>
               <Link
                 to="/"
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  handleSamePageClick("/");
+                  setOpen(false);
+                }}
                 className="text-sm font-semibold uppercase tracking-wider text-[#061E29]"
               >
                 Home
               </Link>
             </li>
             <li>
-              <HashLink
-                smooth
-                to="/#services"
+              <Link
+                to="/?scroll=services"
                 onClick={() => setOpen(false)}
                 className="text-sm font-semibold uppercase tracking-wider text-[#061E29]"
               >
                 Services
-              </HashLink>
+              </Link>
             </li>
             <li>
               <Link
                 to="/about"
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  handleSamePageClick("/about");
+                  setOpen(false);
+                }}
                 className="text-sm font-semibold uppercase tracking-wider text-[#061E29]"
               >
                 About
@@ -242,7 +255,10 @@ const Navbar = () => {
             <li>
               <Link
                 to="/schedualpickup"
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  handleSamePageClick("/schedualpickup");
+                  setOpen(false);
+                }}
                 className="text-sm font-semibold uppercase tracking-wider text-[#061E29]"
               >
                 Schedule Pickup
@@ -267,7 +283,7 @@ const Navbar = () => {
       )}
 
       {showLogin && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 relative overflow-hidden">
             <button
               onClick={() => {
@@ -301,7 +317,7 @@ const Navbar = () => {
                     type="text"
                     value={enteredName}
                     onChange={(e) => setEnteredName(e.target.value)}
-                    placeholder="John Doe"
+                    placeholder="Your Name"
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#061E29] outline-none transition-all"
                   />
                 </div>
@@ -314,7 +330,7 @@ const Navbar = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="john@example.com"
+                    placeholder="Your Email"
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#061E29] outline-none transition-all"
                   />
                 </div>

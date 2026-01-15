@@ -47,7 +47,7 @@ const About = () => {
             </div>
 
             <button className="bg-[#061E29] hover:bg-[#1D546D] text-white px-6 md:px-10 py-3 md:py-4 rounded-xl md:rounded-2xl font-bold transition-all shadow-xl shadow-gray-200 flex items-center gap-2 md:gap-3 group text-sm md:text-base">
-              Schedual Now
+              Schedule Now
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
@@ -83,13 +83,13 @@ const About = () => {
             <img
               src={deliveryImage}
               alt="Washlane Delivery"
-              className="relative z-10 w-[85%] md:w-[75%] lg:w-[65%] rounded-[2rem] md:rounded-[3rem] shadow-2xl border-[8px] md:border-[12px] border-white -rotate-1 hover:rotate-0 transition-all duration-700"
+              className="relative z-10 w-[85%] md:w-[75%] lg:w-[65%] rounded-2xl md:rounded-[3rem] shadow-2xl border-4 md:border-8 border-white -rotate-1 hover:rotate-0 transition-all duration-700"
             />
           </div>
 
           <div className="space-y-6">
 
-            <div className="bg-white p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-100 shadow-[0_10px_40px_rgba(0,0,0,0.04)] hover:shadow-xl transition-all duration-500 group">
+            <div className="bg-white p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] border border-gray-100 shadow-[0_10px_40px_rgba(0,0,0,0.04)] hover:shadow-xl transition-all duration-500 group">
               <div className="flex items-center gap-4 mb-4 md:mb-6">
                 <div className="w-12 h-12 md:w-16 md:h-16 bg-[#F3F4F4] rounded-xl md:rounded-2xl flex items-center justify-center text-[#1D546D] group-hover:bg-[#1D546D] group-hover:text-white transition-all">
                   <Truck size={24} />
@@ -114,7 +114,7 @@ const About = () => {
               </div>
             </div>
 
-            <div className="bg-[#061E29] p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl shadow-blue-900/20">
+            <div className="bg-[#061E29] p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-2xl shadow-blue-900/20">
               <div className="flex items-center gap-4 mb-4 md:mb-6">
                 <div className="w-12 h-12 md:w-16 md:h-16 bg-white/10 rounded-xl md:rounded-2xl flex items-center justify-center text-[#5F9598]">
                   <Sparkles size={24} />

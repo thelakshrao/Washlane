@@ -27,7 +27,7 @@ const Footer = () => {
 
   return (
     <footer className="bg-[#061E29] text-white pt-16 overflow-hidden relative">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-[#1D546D]/20 rounded-full blur-[100px] -z-0" />
+      <div className="absolute top-0 right-0 w-64 h-64 bg-[#1D546D]/20 rounded-full blur-[100px] z-0" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-16">
@@ -73,8 +73,15 @@ const Footer = () => {
                 <li key={i} className="group">
                   {item.hash ? (
                     <HashLink
-                      smooth
-                      to={item.path}
+                      to="/#services"
+                      scroll={(el) => {
+                        setTimeout(() => {
+                          el.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                          });
+                        }, 100);
+                      }}
                       className="flex items-center gap-1 hover:text-[#5F9598] transition-colors"
                     >
                       <ArrowRight
@@ -88,6 +95,11 @@ const Footer = () => {
                   ) : (
                     <Link
                       to={item.path}
+                      onClick={() => {
+                        if (window.location.pathname === item.path) {
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }
+                      }}
                       className="flex items-center gap-1 hover:text-[#5F9598] transition-colors"
                     >
                       <ArrowRight
@@ -161,7 +173,10 @@ const Footer = () => {
         <div className="pt-6 pb-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-3 text-gray-500 text-[10px] sm:text-xs font-semibold uppercase tracking-widest">
           <p>© 2026 WASHLANE. CRAFTED FOR CLEANLINESS.</p>
           <div className="flex gap-4 sm:gap-6">
-            <Link to="/privacy-policy" className="hover:text-white transition-colors">
+            <Link
+              to="/privacy-policy"
+              className="hover:text-white transition-colors"
+            >
               Privacy Policy
             </Link>
             <Link to="/terms" className="hover:text-white transition-colors">

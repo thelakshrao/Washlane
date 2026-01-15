@@ -50,7 +50,7 @@ const Work = () => {
         </div>
 
         <div className="hidden lg:block relative mt-10">
-          <div className="absolute top-12 left-[10%] right-[10%] h-[2px] bg-gradient-to-r from-transparent via-[#5F9598]/30 to-transparent"></div>
+          <div className="absolute top-12 left-[10%] right-[10%] h-2 bg-gradient-to-r from-transparent via-[#5F9598]/30 to-transparent"></div>
 
           <div className="grid grid-cols-4 gap-8">
             {steps.map((step) => (
@@ -61,7 +61,7 @@ const Work = () => {
                 </div>
 
                 <div
-                  className={`mx-auto w-24 h-24 rounded-[2rem] flex items-center justify-center ${step.color} shadow-sm border border-white z-10 relative group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ease-out`}
+                  className={`mx-auto w-24 h-24 rounded-2xl flex items-center justify-center ${step.color} shadow-sm border border-white z-10 relative group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ease-out`}
                 >
                   {step.icon}
                 </div>

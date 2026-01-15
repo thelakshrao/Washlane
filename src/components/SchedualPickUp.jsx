@@ -309,7 +309,7 @@ const SchedualPickUp = () => {
             </div>
           </div>
 
-          <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
+          <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-0">
             <svg
               viewBox="0 0 1200 120"
               preserveAspectRatio="none"
@@ -371,7 +371,7 @@ const SchedualPickUp = () => {
                     <button
                       key={item.fullDate}
                       onClick={() => setSelectedDate(item.fullDate)}
-                      className={`min-w-[80px] py-4 px-2 rounded-2xl border-2 transition-all duration-300 ${
+                      className={`min-w-20 py-4 px-2 rounded-2xl border-2 transition-all duration-300 ${
                         selectedDate === item.fullDate
                           ? "text-white shadow-lg"
                           : "bg-white border-gray-100 text-gray-400 hover:border-teal-200"
