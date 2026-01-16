@@ -41,7 +41,6 @@ const SchedualPickUp = () => {
       setIsUserLoggedIn(!!localStorage.getItem("userEmail"));
     };
 
-    // Listen for the custom event from Navbar
     window.addEventListener("login-status-changed", syncLogin);
     window.addEventListener("focus", syncLogin);
 
