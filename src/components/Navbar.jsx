@@ -44,10 +44,10 @@ const Navbar = () => {
   const [showOrders, setShowOrders] = useState(false);
   const [userOrders, setUserOrders] = useState([]);
   const [fetchingOrders, setFetchingOrders] = useState(false);
+  const [hasSeenOrders, setHasSeenOrders] = useState(false);
 
   const location = useLocation();
   const isSchedulePage = location.pathname === "/schedualpickup";
-
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -91,7 +91,6 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showDropdown]);
 
-
   const fetchUserOrders = async () => {
     const userEmail = localStorage.getItem("userEmail");
     if (!userEmail) return;
@@ -119,6 +118,7 @@ const Navbar = () => {
       setShowLogin(true);
     } else {
       setShowOrders(true);
+      setHasSeenOrders(true);
       fetchUserOrders();
     }
   };
@@ -210,6 +210,12 @@ const Navbar = () => {
             <li>
               <Link
                 to="/"
+                onClick={(e) => {
+                  if (location.pathname === "/") {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                }}
                 className={`${textColor} text-xs font-semibold uppercase tracking-wider`}
               >
                 Home
@@ -226,6 +232,12 @@ const Navbar = () => {
             <li>
               <Link
                 to="/about"
+                onClick={(e) => {
+                  if (location.pathname === "/about") {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                }}
                 className={`${textColor} text-xs font-semibold uppercase tracking-wider`}
               >
                 About
@@ -234,6 +246,12 @@ const Navbar = () => {
             <li>
               <Link
                 to="/schedualpickup"
+                onClick={(e) => {
+                  if (location.pathname === "/schedualpickup") {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                }}
                 className={`${textColor} text-xs font-semibold uppercase tracking-wider`}
               >
                 Schedule
@@ -247,7 +265,7 @@ const Navbar = () => {
                 size={20}
                 className={`${textColor} transition-transform group-hover:scale-110`}
               />
-              {userOrders.length > 0 && isLoggedIn && (
+              {userOrders.length > 0 && isLoggedIn && !hasSeenOrders && (
                 <span className="absolute -top-1 -right-1 bg-teal-500 text-white text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
                   {userOrders.length}
                 </span>
@@ -292,14 +310,107 @@ const Navbar = () => {
                 )}
               </div>
             )}
+
             <button
               onClick={() => setOpen(!open)}
-              className={`md:hidden ${textColor}`}
+              className={`md:hidden relative z-120 ${textColor}`}
             >
               {open ? <X size={26} /> : <Menu size={26} />}
             </button>
           </div>
         </div>
+
+        {open && (
+          <div className="fixed inset-0 bg-white z-110 md:hidden flex flex-col items-center justify-center animate-in fade-in slide-in-from-top duration-5000 h-60 mt-13 rounded-2xl">
+            <ul className="flex flex-col items-center gap-5">
+              <li>
+                <Link
+                  to="/"
+                  onClick={(e) => {
+                    setOpen(false);
+                    if (location.pathname === "/") {
+                      e.preventDefault();
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }
+                  }}
+                  className="text-sm font-black text-[#061E29]"
+                >
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/?scroll=services"
+                  onClick={(e) => {
+                    setOpen(false);
+                    if (location.pathname === "?scroll=services") {
+                      e.preventDefault();
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }
+                  }}
+                  className="text-sm font-black text-[#061E29]"
+                >
+                  Services
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/about"
+                  onClick={(e) => {
+                    setOpen(false);
+                    if (location.pathname === "/about") {
+                      e.preventDefault();
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }
+                  }}
+                  className="text-sm font-black text-[#061E29]"
+                >
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/schedualpickup"
+                  onClick={(e) => {
+                    setOpen(false);
+                    if (location.pathname === "/schedualpickup") {
+                      e.preventDefault();
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }
+                  }}
+                  className="text-sm font-black text-[#061E29]"
+                >
+                  Schedule
+                </Link>
+              </li>
+              {!isLoggedIn ? (
+                <li>
+                  <button
+                    onClick={() => {
+                      setShowLogin(true);
+                      setOpen(false);
+                    }}
+                    className="text-sm font-black text-[#061E29]"
+                  >
+                    Login
+                  </button>
+                </li>
+              ) : (
+                <li>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setOpen(false);
+                    }}
+                    className="text-sm font-black text-[#ff0000]"
+                  >
+                    Logout
+                  </button>
+                </li>
+              )}
+            </ul>
+          </div>
+        )}
       </nav>
 
       {showOrders && (

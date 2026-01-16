@@ -560,7 +560,7 @@ const SchedualPickUp = () => {
                   </div>
 
                   {deliveryType === "express" && showExpressNote && (
-                    <div className="mt-6 p-5 rounded-2xl bg-gradient-to-r from-[#1D546D] to-[#5F9598] text-white animate-in fade-in slide-in-from-bottom-3 duration-500">
+                    <div className="mt-6 p-5 rounded-2xl bg-linear-to-r from-[#1D546D] to-[#5F9598] text-white animate-in fade-in slide-in-from-bottom-3 duration-500">
                       <h4 className="text-lg font-black mb-1">
                         Express Delivery Activated
                       </h4>
@@ -931,7 +931,7 @@ const SchedualPickUp = () => {
                                           >
                                             -
                                           </button>
-                                          <div className="flex flex-col items-center min-w-[60px]">
+                                          <div className="flex flex-col items-center min-w-15">
                                             <span
                                               className="text-xs font-black"
                                               style={{ color: colors.teal }}
