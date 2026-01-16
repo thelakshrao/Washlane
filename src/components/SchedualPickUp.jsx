@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import {
   Calendar,
   Clock,
@@ -10,6 +10,9 @@ import {
 import threeperson from "../images/three.png";
 import Footer from "./Footer";
 import { useLocation } from "react-router-dom";
+import PaymentMethod from "./PaymentMethod";
+import { db } from "../firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 const SchedualPickUp = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -27,6 +30,26 @@ const SchedualPickUp = () => {
   const location = useLocation();
   const initialAddressFromHome = location.state?.address || "";
   const preSelectedService = location.state?.selectedService || null;
+  const cardRef = useRef(null);
+
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(
+    !!localStorage.getItem("userEmail")
+  );
+
+  useEffect(() => {
+    const syncLogin = () => {
+      setIsUserLoggedIn(!!localStorage.getItem("userEmail"));
+    };
+
+    // Listen for the custom event from Navbar
+    window.addEventListener("login-status-changed", syncLogin);
+    window.addEventListener("focus", syncLogin);
+
+    return () => {
+      window.removeEventListener("login-status-changed", syncLogin);
+      window.removeEventListener("focus", syncLogin);
+    };
+  }, []);
 
   const colors = {
     deepNavy: "#061E29",
@@ -46,55 +69,57 @@ const SchedualPickUp = () => {
       {
         id: "wash-fold",
         title: "Wash & Fold",
-        price: "$1.50/lb",
         items: [
-          "Shirts/T-shirt",
-          "Trouser",
-          "Suits",
-          "Blazers",
-          "Sarees",
-          "Dresses",
+          { name: "Shirt / T-shirt / Kurta", price: 15 },
+          { name: "Trouser / Jeans / Pent", price: 15 },
+          { name: "Jacket / Sweaters", price: 50 },
+          { name: "Sarees", price: 150 },
+          { name: "Dresses", price: 30 },
+          { name: "Bedsheet (single)", price: 50 },
+          { name: "Bedsheet (double)", price: 80 },
         ],
       },
       {
         id: "wash-iron",
         title: "Wash & Iron",
-        price: "$2.50/item",
         items: [
-          "Shirts/T-shirt",
-          "Trouser",
-          "Suits",
-          "Blazers",
-          "Sarees",
-          "Dresses",
+          { name: "Shirt / T-shirt / Kurta", price: 25 },
+          { name: "Trouser / Jeans / Pent", price: 25 },
+          { name: "Jacket / Sweaters", price: 50 },
+          { name: "Sarees", price: 200 },
+          { name: "Dresses", price: 45 },
+          { name: "Bedsheet (single)", price: 70 },
+          { name: "Bedsheet (double)", price: 100 },
         ],
       },
       {
         id: "only-iron",
-        title: "Only Ironing",
-        price: "$1.99/item",
+        title: "Only Iron",
         items: [
-          "Shirts/T-shirt",
-          "Trouser",
-          "Suits",
-          "Blazers",
-          "Sarees",
-          "Dresses",
+          { name: "Shirt / T-shirt / Kurta", price: 15 },
+          { name: "Trouser / Jeans / Pent", price: 15 },
+          { name: "Sarees", price: 50 },
+          { name: "Dresses", price: 20 },
         ],
       },
       {
         id: "dry-clean",
         title: "Dry Cleaning",
-        price: "$5.99/item",
-        items: ["Suits", "Blazers", "Sarees", "Dresses", "Jackets", "Woolens"],
+        items: [
+          { name: "Blazers", price: 299 },
+          { name: "Suit (2 pcs)", price: 349 },
+          { name: "Suit (3 pcs)", price: 399 },
+          { name: "Jacket/Woolen Clothes", price: 249 },
+          { name: "Kurta Pyjama", price: 249 },
+          { name: "Blanket (single)", price: 349 },
+          { name: "Blanket (double)", price: 449 },
+          { name: "Shawl", price: 199 },
+        ],
       },
-      { id: "bedsheet", title: "Bedsheet Cleaning", price: "$3.50/item" },
-      { id: "blanket", title: "Blanket / Quilt Wash", price: "$4.50/item" },
-      { id: "curtain", title: "Curtain Cleaning", price: "$3.99/item" },
-      { id: "sofa", title: "Sofa Cover Cleaning", price: "$6.50/item" },
-      { id: "shoes", title: "Shoe Laundry", price: "$2.99/item" },
-      { id: "bags", title: "Bag Cleaning", price: "$2.50/item" },
-      { id: "soft-toys", title: "Soft Toy Cleaning", price: "$3.00/item" },
+      { id: "curtain", title: "Curtain Cleaning", price: 199 },
+      { id: "sofa", title: "Sofa cover cleaning", price: 249 },
+      { id: "shoes", title: "Shoe Laundry", price: 249 },
+      { id: "bags", title: "Bag Laundry", price: 149 },
     ],
     []
   );
@@ -266,6 +291,72 @@ const SchedualPickUp = () => {
     }
   }, [currentStep, preSelectedService, serviceTitleToId]);
 
+  useEffect(() => {
+    if (cardRef.current && currentStep > 1) {
+      cardRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [currentStep]);
+
+  const totalAmount = Object.entries(serviceData).reduce(
+    (acc, [sId, items]) => {
+      const s = servicesList.find((x) => x.id === sId);
+      if (typeof items === "number") return acc + items * (s.price || 0);
+      return (
+        acc +
+        Object.entries(items).reduce((sum, [iName, count]) => {
+          const p = s.items?.find((i) => i.name === iName)?.price || 0;
+          return sum + count * p;
+        }, 0)
+      );
+    },
+    0
+  );
+
+  const handleGenerateOrder = async (method, total) => {
+    const userEmail = localStorage.getItem("userEmail");
+
+    if (!userEmail) {
+      alert("Please log in to place an order!");
+      return;
+    }
+
+    try {
+      const year = new Date().getFullYear().toString().slice(-2);
+      const randomPart = Math.floor(1000 + Math.random() * 9000);
+      const newOrderId = `WL${year}${randomPart}`;
+
+      const orderData = {
+        orderId: newOrderId,
+        customerName: formData.name,
+        customerEmail: userEmail,
+        phone: formData.phone,
+        address: formData.address,
+        totalAmount: total,
+        paymentMethod: method,
+        pickupDate: selectedDate,
+        pickupTime: selectedTime,
+        status: "Order Confirmed",
+        items: serviceData,
+        createdAt: serverTimestamp(),
+      };
+
+      await setDoc(
+        doc(db, "orders", userEmail, "userOrders", newOrderId),
+        orderData
+      );
+
+      localStorage.setItem("lastOrderId", newOrderId);
+      alert("Order Booked Successfully! ID: " + newOrderId);
+      setCurrentStep(6);
+    } catch (error) {
+      console.error("Firebase Error:", error);
+      alert("Error: " + error.message);
+    }
+  };
+
   const isStep3Valid =
     formData.name.trim() && formData.phone.trim() && formData.address.trim();
 
@@ -321,8 +412,11 @@ const SchedualPickUp = () => {
           </div>
         </div>
 
-        <section className="flex justify-center items-start px-4 -mt-10 pb-20 relative z-20">
-          <div className="w-full max-w-4xl bg-white rounded-3xl p-8 md:p-12 shadow-2xl shadow-blue-900/10">
+        <section className="flex justify-center items-start px-4 -mt-10 pb-20 relative z-20 scroll-mt-24">
+          <div
+            ref={cardRef}
+            className="w-full max-w-4xl bg-white rounded-3xl p-8 md:p-12 shadow-2xl shadow-blue-900/10"
+          >
             <div className="flex justify-between mb-12 relative">
               <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-100 -translate-y-1/2 z-0"></div>
               {[1, 2, 3, 4, 5].map((step) => (
@@ -545,152 +639,114 @@ const SchedualPickUp = () => {
                   Select Services
                 </h2>
                 <p className="text-gray-500 mb-8">
-                  What are we cleaning for you today?
+                  Choose items from the pricing list.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {servicesList.map((service) => {
-                    const total = getServiceTotal(service.id);
+                    const totalItems = getServiceTotal(service.id);
                     const isConfiguring = activeConfig === service.id;
+
                     return (
                       <div
                         key={service.id}
-                        className={`relative p-6 rounded-3xl border-2 transition-all duration-300 ${
-                          total > 0 ? "shadow-md" : "border-gray-50"
-                        }`}
+                        className="p-6 rounded-3xl border-2 transition-all"
                         style={{
-                          borderColor: total > 0 ? colors.teal : "#F9FAFB",
+                          borderColor: totalItems > 0 ? colors.teal : "#F9FAFB",
                           backgroundColor:
-                            total > 0 ? colors.lightGrey : "white",
+                            totalItems > 0 ? colors.lightGrey : "white",
                         }}
                       >
                         {!isConfiguring ? (
                           <div className="flex justify-between items-center">
                             <div>
-                              <h4
-                                className="font-black text-xl"
-                                style={{ color: colors.deepNavy }}
-                              >
+                              <h4 className="font-black text-xl">
                                 {service.title}
                               </h4>
-                              <p
-                                className="text-sm font-bold opacity-60"
-                                style={{ color: colors.primaryBlue }}
-                              >
-                                {service.price}
+                              <p className="text-sm opacity-60">
+                                Starting from ₹
+                                {service.price || service.items?.[0]?.price}
                               </p>
-                              {total > 0 && (
-                                <span
-                                  className="inline-block mt-3 px-4 py-1 text-white text-[10px] font-black rounded-full"
-                                  style={{ backgroundColor: colors.teal }}
-                                >
-                                  {total} ITEMS
-                                </span>
-                              )}
                             </div>
                             <button
                               onClick={() => setActiveConfig(service.id)}
-                              className="px-6 py-2 rounded-xl text-sm font-bold text-white transition-transform active:scale-95 shadow-md"
+                              className="px-6 py-2 rounded-xl text-white font-bold"
                               style={{ backgroundColor: colors.primaryBlue }}
                             >
-                              {total > 0 ? "Edit" : "Add"}
+                              {totalItems > 0 ? "Edit" : "Add"}
                             </button>
                           </div>
                         ) : (
                           <div className="animate-in zoom-in-95 duration-200">
-                            <h4 className="font-black mb-6 flex justify-between items-center">
+                            <h4 className="font-black mb-4 flex justify-between">
                               <span>{service.title}</span>
-                              <span
-                                className="text-xs px-2 py-1 rounded bg-white"
-                                style={{ color: colors.teal }}
-                              >
-                                Configuring
-                              </span>
                             </h4>
-                            {service.items ? (
-                              <div className="space-y-4 mb-6">
-                                {service.items.map((item) => (
+                            <div className="space-y-3">
+                              {(
+                                service.items || [
+                                  { name: "Quantity", price: service.price },
+                                ]
+                              ).map((itemObj) => {
+                                const itemName =
+                                  typeof itemObj === "string"
+                                    ? itemObj
+                                    : itemObj.name;
+                                const itemPrice = itemObj.price;
+                                const count =
+                                  serviceData[service.id]?.[itemName] ||
+                                  (typeof serviceData[service.id] === "number"
+                                    ? serviceData[service.id]
+                                    : 0);
+
+                                return (
                                   <div
-                                    key={item}
-                                    className="flex justify-between items-center"
+                                    key={itemName}
+                                    className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm"
                                   >
-                                    <span className="text-sm font-medium">
-                                      {item}
-                                    </span>
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex flex-col">
+                                      <span className="text-xs font-bold">
+                                        {itemName}
+                                      </span>
+                                      <span className="text-[10px] text-teal-600 font-bold">
+                                        ₹{itemPrice} / pc
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
                                       <button
                                         onClick={() =>
                                           handleUpdateCount(
                                             service.id,
-                                            item,
-                                            (serviceData[service.id]?.[item] ||
-                                              0) - 1
+                                            service.items ? itemName : null,
+                                            count - 1
                                           )
                                         }
-                                        className="w-8 h-8 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center font-bold"
+                                        className="w-7 h-7 rounded bg-gray-100 flex items-center justify-center"
                                       >
                                         -
                                       </button>
-                                      <span className="w-4 text-center font-bold">
-                                        {serviceData[service.id]?.[item] || 0}
+                                      <span className="font-bold w-4 text-center">
+                                        {count}
                                       </span>
                                       <button
                                         onClick={() =>
                                           handleUpdateCount(
                                             service.id,
-                                            item,
-                                            (serviceData[service.id]?.[item] ||
-                                              0) + 1
+                                            service.items ? itemName : null,
+                                            count + 1
                                           )
                                         }
-                                        className="w-8 h-8 rounded-lg text-white shadow-md flex items-center justify-center font-bold"
+                                        className="w-7 h-7 rounded text-white flex items-center justify-center"
                                         style={{ backgroundColor: colors.teal }}
                                       >
                                         +
                                       </button>
                                     </div>
                                   </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-between mb-6">
-                                <span className="text-sm font-bold">
-                                  Quantity
-                                </span>
-                                <div className="flex items-center gap-4">
-                                  <button
-                                    onClick={() =>
-                                      handleUpdateCount(
-                                        service.id,
-                                        null,
-                                        (serviceData[service.id] || 0) - 1
-                                      )
-                                    }
-                                    className="w-10 h-10 rounded-xl bg-white shadow-sm border border-gray-100 font-bold"
-                                  >
-                                    -
-                                  </button>
-                                  <span className="w-6 text-center text-lg font-black">
-                                    {serviceData[service.id] || 0}
-                                  </span>
-                                  <button
-                                    onClick={() =>
-                                      handleUpdateCount(
-                                        service.id,
-                                        null,
-                                        (serviceData[service.id] || 0) + 1
-                                      )
-                                    }
-                                    className="w-10 h-10 rounded-xl text-white shadow-md font-bold"
-                                    style={{ backgroundColor: colors.teal }}
-                                  >
-                                    +
-                                  </button>
-                                </div>
-                              </div>
-                            )}
+                                );
+                              })}
+                            </div>
                             <button
                               onClick={() => setActiveConfig(null)}
-                              className="w-full py-3 rounded-xl font-black text-white shadow-lg shadow-teal-900/20"
+                              className="w-full mt-4 py-3 rounded-xl font-black text-white"
                               style={{ backgroundColor: colors.teal }}
                             >
                               Save Selection
@@ -741,24 +797,34 @@ const SchedualPickUp = () => {
 
             {currentStep === 4 && (
               <div className="animate-in fade-in duration-500">
-                <h2 className="text-3xl font-bold mb-8 text-center">
+                <h2
+                  className="text-3xl font-bold mb-8 text-center"
+                  style={{ color: colors.deepNavy }}
+                >
                   Review Details
                 </h2>
+
                 <div className="space-y-4">
                   <div className="p-6 rounded-2xl border-2 border-gray-50 bg-gray-50/50 flex justify-between items-start">
                     <div>
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
                         Contact & Address
                       </p>
-                      <p className="font-bold text-lg">{formData.name}</p>
+                      <p
+                        className="font-bold text-lg"
+                        style={{ color: colors.deepNavy }}
+                      >
+                        {formData.name}
+                      </p>
                       <p className="text-sm opacity-70">{formData.phone}</p>
-                      <p className="text-sm mt-2 font-medium">
+                      <p className="text-sm mt-2 font-medium text-gray-600">
                         {formData.address}
                       </p>
                     </div>
                     <button
                       onClick={() => setCurrentStep(3)}
-                      className="text-teal-600 font-bold text-xs hover:underline"
+                      className="font-bold text-xs hover:underline"
+                      style={{ color: colors.teal }}
                     >
                       Edit
                     </button>
@@ -769,91 +835,336 @@ const SchedualPickUp = () => {
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
                         Schedule
                       </p>
-
-                      <p className="font-bold">
+                      <p
+                        className="font-bold"
+                        style={{ color: colors.deepNavy }}
+                      >
                         Pickup: {selectedDate} at {selectedTime}
                       </p>
-
-                      {deliveryType === "standard" && (
-                        <p className="font-bold mt-2">
+                      {deliveryType === "standard" ? (
+                        <p className="font-bold mt-1 text-gray-600">
                           Delivery: {dropDate} at {dropTime}
                         </p>
-                      )}
-
-                      {deliveryType === "express" && (
-                        <p className="font-bold mt-2 text-teal-700">
+                      ) : (
+                        <p
+                          className="font-bold mt-1"
+                          style={{ color: colors.teal }}
+                        >
                           Express Delivery (2–3 Hours)
                         </p>
                       )}
                     </div>
-
                     <button
                       onClick={() => setCurrentStep(1)}
-                      className="text-teal-600 font-bold text-xs hover:underline"
+                      className="font-bold text-xs hover:underline"
+                      style={{ color: colors.teal }}
                     >
                       Edit
                     </button>
                   </div>
 
-                  <div className="p-6 rounded-2xl border-2 border-gray-50 bg-gray-50/50">
-                    <div className="flex justify-between items-center mb-4">
+                  <div className="p-6 rounded-3xl border-2 border-gray-100 bg-white shadow-sm">
+                    <div className="flex justify-between items-center mb-6">
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                        Order Summary
+                        Detailed Order Summary
                       </p>
                       <button
                         onClick={() => setCurrentStep(2)}
-                        className="text-teal-600 font-bold text-xs hover:underline"
+                        className="font-bold text-xs hover:underline"
+                        style={{ color: colors.teal }}
                       >
-                        Edit
+                        Add Items
                       </button>
                     </div>
-                    {Object.keys(serviceData).map((serviceId) => {
-                      const total = getServiceTotal(serviceId);
-                      if (total === 0) return null;
-                      const service = servicesList.find(
-                        (s) => s.id === serviceId
-                      );
-                      return (
-                        <div
-                          key={serviceId}
-                          className="py-3 border-t border-gray-100"
-                        >
-                          <p className="font-bold flex justify-between">
-                            <span>{service?.title}</span>
-                            <span style={{ color: colors.teal }}>
-                              {total} Items
-                            </span>
-                          </p>
-                        </div>
-                      );
-                    })}
+
+                    <div className="max-h-80 overflow-y-auto pr-2 scrollbar-thin">
+                      {Object.entries(serviceData).map(([serviceId, items]) => {
+                        const service = servicesList.find(
+                          (s) => s.id === serviceId
+                        );
+                        if (!service) return null;
+
+                        return (
+                          <div key={serviceId} className="mb-6 last:mb-0">
+                            <h5
+                              className="font-black text-xs mb-3 uppercase tracking-wider"
+                              style={{ color: colors.primaryBlue }}
+                            >
+                              {service.title}
+                            </h5>
+
+                            {typeof items === "object"
+                              ? Object.entries(items).map(
+                                  ([itemName, count]) => {
+                                    if (count === 0) return null;
+                                    const itemPrice =
+                                      service.items?.find(
+                                        (i) => i.name === itemName
+                                      )?.price || 0;
+
+                                    return (
+                                      <div
+                                        key={itemName}
+                                        className="flex justify-between items-center py-3 border-b border-gray-50 last:border-0"
+                                      >
+                                        <div className="text-sm">
+                                          <p
+                                            className="font-bold"
+                                            style={{ color: colors.deepNavy }}
+                                          >
+                                            {itemName}
+                                          </p>
+                                          <p className="text-xs text-gray-400">
+                                            ₹{itemPrice} per item
+                                          </p>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 bg-gray-50 p-1.5 rounded-xl border border-gray-100">
+                                          <button
+                                            onClick={() =>
+                                              handleUpdateCount(
+                                                serviceId,
+                                                itemName,
+                                                count - 1
+                                              )
+                                            }
+                                            className="w-8 h-8 flex items-center justify-center font-bold text-gray-500 hover:text-red-500 transition-colors"
+                                          >
+                                            -
+                                          </button>
+                                          <div className="flex flex-col items-center min-w-[60px]">
+                                            <span
+                                              className="text-xs font-black"
+                                              style={{ color: colors.teal }}
+                                            >
+                                              {count} Qty
+                                            </span>
+                                            <span className="text-[10px] font-bold text-gray-400">
+                                              ₹{itemPrice * count}
+                                            </span>
+                                          </div>
+                                          <button
+                                            onClick={() =>
+                                              handleUpdateCount(
+                                                serviceId,
+                                                itemName,
+                                                count + 1
+                                              )
+                                            }
+                                            className="w-8 h-8 flex items-center justify-center font-bold hover:text-teal-600 transition-colors"
+                                            style={{ color: colors.teal }}
+                                          >
+                                            +
+                                          </button>
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                )
+                              : items > 0 && (
+                                  <div className="flex justify-between items-center py-3">
+                                    <span
+                                      className="text-sm font-bold"
+                                      style={{ color: colors.deepNavy }}
+                                    >
+                                      Fixed Service Rate
+                                    </span>
+                                    <div className="flex items-center gap-3 bg-gray-50 p-1.5 rounded-xl border border-gray-100">
+                                      <button
+                                        onClick={() =>
+                                          handleUpdateCount(
+                                            serviceId,
+                                            null,
+                                            items - 1
+                                          )
+                                        }
+                                        className="w-8 h-8 flex items-center justify-center font-bold"
+                                      >
+                                        -
+                                      </button>
+                                      <span
+                                        className="font-black"
+                                        style={{ color: colors.teal }}
+                                      >
+                                        ₹{service.price * items}
+                                      </span>
+                                      <button
+                                        onClick={() =>
+                                          handleUpdateCount(
+                                            serviceId,
+                                            null,
+                                            items + 1
+                                          )
+                                        }
+                                        className="w-8 h-8 flex items-center justify-center font-bold"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div
+                      className="mt-8 p-5 rounded-2xl text-white flex justify-between items-center shadow-lg"
+                      style={{
+                        background: `linear-gradient(135deg, ${colors.deepNavy} 0%, ${colors.primaryBlue} 100%)`,
+                      }}
+                    >
+                      <div>
+                        <span className="font-bold uppercase tracking-widest text-[10px] opacity-80">
+                          Estimated Total
+                        </span>
+                        <p className="text-xs opacity-70">Tax included</p>
+                      </div>
+                      <span className="text-3xl font-black">
+                        ₹
+                        {Object.entries(serviceData).reduce(
+                          (acc, [sId, items]) => {
+                            const s = servicesList.find((x) => x.id === sId);
+                            if (typeof items === "number")
+                              return acc + items * (s.price || 0);
+                            return (
+                              acc +
+                              Object.entries(items).reduce(
+                                (sum, [iName, count]) => {
+                                  const p =
+                                    s.items?.find((i) => i.name === iName)
+                                      ?.price || 0;
+                                  return sum + count * p;
+                                },
+                                0
+                              )
+                            );
+                          },
+                          0
+                        )}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
 
             {currentStep === 5 && (
-              <div className="text-center py-10 animate-in zoom-in duration-500">
-                <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
-                  ✓
+              <div className="animate-in fade-in duration-500">
+                {!isUserLoggedIn && (
+                  <div className="bg-red-50 border border-red-200 p-4 rounded-2xl mb-6">
+                    <p className="text-red-600 text-sm font-bold text-center">
+                      ⚠️ You must be logged in to complete your booking.
+                    </p>
+                    <button
+                      onClick={() => {
+                        const event = new Event("open-login-modal");
+                        window.dispatchEvent(event);
+                      }}
+                      className="w-full mt-2 text-xs font-black underline text-red-700 uppercase"
+                    >
+                      Click here to Login
+                    </button>
+                  </div>
+                )}
+
+                <PaymentMethod
+                  totalAmount={totalAmount}
+                  onProceed={(method) => {
+                    if (!localStorage.getItem("userEmail")) {
+                      const event = new Event("open-login-modal");
+                      window.dispatchEvent(event);
+                      return;
+                    }
+                    handleGenerateOrder(method, totalAmount);
+                  }}
+                />
+              </div>
+            )}
+
+            {currentStep === 6 && (
+              <div className="animate-in zoom-in-95 duration-500 py-10">
+                <div className="text-center mb-10">
+                  <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+                    <CheckCircle size={40} />
+                  </div>
+                  <h2 className="text-3xl font-black text-[#061E29]">
+                    Order Placed!
+                  </h2>
+                  <p className="text-gray-500 font-bold mt-1 uppercase tracking-widest text-xs">
+                    ORDER ID: {localStorage.getItem("lastOrderId")}
+                  </p>
                 </div>
-                <h2
-                  className="text-4xl font-black mb-4"
-                  style={{ color: colors.deepNavy }}
-                >
-                  Order Confirmed!
-                </h2>
-                <p className="text-gray-500 mb-10 max-w-sm mx-auto">
-                  We've received your request. A driver will be assigned to your
-                  location shortly.
-                </p>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="px-12 py-4 text-white font-black rounded-2xl shadow-xl transition-transform hover:scale-105 active:scale-95"
-                  style={{ backgroundColor: colors.deepNavy }}
-                >
-                  Book Another
-                </button>
+
+                <div className="max-w-sm mx-auto space-y-8 relative">
+                  {/* Fixed Vertical Line Alignment */}
+                  <div className="absolute left-[19px] top-2 bottom-2 w-0.5 bg-gray-100 -z-10" />
+
+                  {[
+                    {
+                      title: "Order Confirmed",
+                      desc: "Received at Washlane HQ",
+                      status: "done",
+                    },
+                    {
+                      title: "Pickup Scheduled",
+                      desc: `Executive arriving on ${selectedDate}`,
+                      status: "pending",
+                    },
+                    {
+                      title: "Cleaning Process",
+                      desc: "Expert cleaning in progress",
+                      status: "pending",
+                    },
+                    {
+                      title: "Ready for Delivery",
+                      desc: "Fresh & packed clothes",
+                      status: "pending",
+                    },
+                  ].map((step, i) => (
+                    <div key={i} className="flex gap-6 items-start">
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center border-4 border-white shadow-md transition-colors ${
+                          step.status === "done"
+                            ? "bg-[#5F9598] text-white"
+                            : "bg-gray-100 text-gray-400"
+                        }`}
+                      >
+                        {step.status === "done" ? (
+                          <CheckCircle size={18} />
+                        ) : (
+                          i + 1
+                        )}
+                      </div>
+                      <div>
+                        <h4
+                          className={`font-black text-sm uppercase tracking-tight ${
+                            step.status === "done"
+                              ? "text-[#061E29]"
+                              : "text-gray-300"
+                          }`}
+                        >
+                          {step.title}
+                        </h4>
+                        <p className="text-[11px] text-gray-400 font-medium leading-tight">
+                          {step.desc}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-12 space-y-3">
+                  <button
+                    onClick={() => (window.location.href = "/")}
+                    className="w-full py-4 rounded-2xl bg-[#061E29] text-white font-black uppercase tracking-widest hover:bg-black transition-all shadow-lg"
+                  >
+                    Return to Home
+                  </button>
+                  <p className="text-center text-[10px] text-gray-400 font-bold uppercase">
+                    Check your email for the detailed invoice.
+                  </p>
+                </div>
               </div>
             )}
 
@@ -884,7 +1195,7 @@ const SchedualPickUp = () => {
                   className="w-1/2 py-4 rounded-2xl text-white font-black shadow-xl disabled:bg-gray-200 disabled:shadow-none transition-all flex items-center justify-center gap-2"
                   style={{ backgroundColor: colors.primaryBlue }}
                 >
-                  {currentStep === 4 ? "Schedule Now" : "Continue"}{" "}
+                  {currentStep === 4 ? "Proceed to Payment" : "Continue"}{" "}
                   <ArrowRight size={18} />
                 </button>
               </div>

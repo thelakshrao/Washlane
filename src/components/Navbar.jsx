@@ -89,6 +89,8 @@ const Navbar = () => {
 
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("userName", enteredName);
+        localStorage.setItem("userEmail", email);
+        window.dispatchEvent(new Event("login-status-changed"));
 
         setUserName(enteredName);
         setIsLoggedIn(true);
@@ -118,6 +120,16 @@ const Navbar = () => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
+
+  useEffect(() => {
+    const openLogin = () => setShowLogin(true);
+
+    window.addEventListener("open-login-modal", openLogin);
+
+    return () => {
+      window.removeEventListener("open-login-modal", openLogin);
+    };
+  }, []);
 
   return (
     <>
