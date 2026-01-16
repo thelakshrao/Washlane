@@ -166,7 +166,7 @@ const Services = () => {
                     state: { selectedService: item.title },
                   })
                 }
-                className="w-full py-3 px-6 bg-[#061E29] hover:bg-[#1D546D] text-white font-bold rounded-2xl transition-all shadow-lg active:scale-95"
+                className="w-full py-3 px-6 bg-[#061E29] hover:bg-[#1D546D] text-white font-bold rounded-2xl transition-all shadow-lg active:scale-95 cursor-pointer"
               >
                 Select Service
               </button>

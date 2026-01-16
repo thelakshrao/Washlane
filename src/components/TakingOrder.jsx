@@ -92,7 +92,7 @@ const TakingOrder = () => {
               to="/schedualpickup" 
               className="inline-flex items-center gap-3 bg-white text-[#061E29] px-10 py-5 rounded-2xl font-black hover:bg-[#F3F4F4] transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 active:translate-y-0"
             >
-              Schedule Pickup Now <ArrowRight size={20} />
+              Schedule Free Pickup <ArrowRight size={20} />
             </Link>
           </div>
         </div>

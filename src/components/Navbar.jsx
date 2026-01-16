@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react"; // Added useRef here
 import { HashLink } from "react-router-hash-link";
 import { Link, useLocation } from "react-router-dom";
 import emailjs from "@emailjs/browser";
@@ -24,6 +24,7 @@ const Navbar = () => {
     localStorage.getItem("userName") || ""
   );
   const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
   const [email, setEmail] = useState("");
   const [enteredName, setEnteredName] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -33,11 +34,30 @@ const Navbar = () => {
   const location = useLocation();
   const isSchedulePage = location.pathname === "/schedualpickup";
 
+  // Handle Scroll effect
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // PROB FIXED: Click outside logic
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        showDropdown &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showDropdown]);
 
   const textColor =
     isSchedulePage && !scrolled ? "text-white" : "text-[#061E29]";
@@ -100,7 +120,7 @@ const Navbar = () => {
         alert("Welcome to Washlane, " + enteredName + "!");
       } catch (error) {
         console.error("Firebase Error:", error);
-        alert("Verified, but profile not saved. Check Firestore permissions.");
+        alert("Verified, but profile not saved.");
       }
     } else {
       alert("Invalid OTP code. Please try again.");
@@ -123,9 +143,7 @@ const Navbar = () => {
 
   useEffect(() => {
     const openLogin = () => setShowLogin(true);
-
     window.addEventListener("open-login-modal", openLogin);
-
     return () => {
       window.removeEventListener("open-login-modal", openLogin);
     };
@@ -145,6 +163,7 @@ const Navbar = () => {
             WASHLANE
           </h2>
 
+          {/* Desktop Navigation */}
           <ul className="hidden md:flex items-center gap-6 ">
             <li>
               <Link
@@ -195,6 +214,7 @@ const Navbar = () => {
               </button>
             ) : (
               <div className="relative">
+                {/* User Dropdown Toggle */}
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
                   className={`flex items-center gap-1 text-xs font-semibold uppercase tracking-wider ${textColor}`}
@@ -202,8 +222,12 @@ const Navbar = () => {
                   {userName} <ChevronDown size={14} />
                 </button>
 
+                {/* PROB FIXED: Removed the double wrapper and double button logic that was in your code */}
                 {showDropdown && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-xl overflow-hidden text-gray-800">
+                  <div
+                    ref={dropdownRef}
+                    className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-xl overflow-hidden text-gray-800"
+                  >
                     <button className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-100 text-sm">
                       <Settings size={14} /> Settings
                     </button>
@@ -228,6 +252,7 @@ const Navbar = () => {
         </div>
       </nav>
 
+      {/* Mobile Menu */}
       {open && (
         <div className="fixed top-14 left-0 w-full bg-white z-90 md:hidden">
           <ul className="flex flex-col items-center py-8 gap-6">
@@ -294,6 +319,7 @@ const Navbar = () => {
         </div>
       )}
 
+      {/* Login Modal */}
       {showLogin && (
         <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 relative overflow-hidden">

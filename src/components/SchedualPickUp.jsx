@@ -1096,9 +1096,9 @@ const SchedualPickUp = () => {
                   </p>
                 </div>
 
-                <div className="max-w-sm mx-auto space-y-8 relative">
-                  {/* Fixed Vertical Line Alignment */}
-                  <div className="absolute left-[19px] top-2 bottom-2 w-0.5 bg-gray-100 -z-10" />
+                <div className="max-w-sm mx-auto space-y-5 relative">
+
+                  <div className="relative left-0 top-2 bottom-2 w-0.5 bg-gray-100 -z-10" />
 
                   {[
                     {
@@ -1119,6 +1119,11 @@ const SchedualPickUp = () => {
                     {
                       title: "Ready for Delivery",
                       desc: "Fresh & packed clothes",
+                      status: "pending",
+                    },
+                    {
+                      title: "oder Deliver",
+                      desc: "Thank You",
                       status: "pending",
                     },
                   ].map((step, i) => (
