@@ -7,7 +7,6 @@ const services = [
     title: "Wash & Fold",
     desc: "Perfect for everyday clothes and regular wear",
     price: "Starting at ₹15",
-    unit: "per piece",
     features: ["Wash & dry", "Neatly folded", "24 hour delivery"],
     icon: <Shirt className="w-7 h-7 text-[#1D546D]" />,
     iconBg: "bg-blue-50",
@@ -16,7 +15,6 @@ const services = [
     title: "Wash & Iron",
     desc: "Crisp and ready-to-wear garments",
     price: "Starting at ₹25",
-    unit: "per piece",
     features: ["Wash & dry", "Professional ironing", "24 hour delivery"],
     icon: <Sparkles className="w-7 h-7 text-[#5F9598]" />,
     iconBg: "bg-teal-50",
@@ -25,7 +23,6 @@ const services = [
     title: "Dry Cleaning",
     desc: "Premium care for delicate fabrics",
     price: "Starting at ₹299",
-    unit: "per piece",
     features: ["Specialized cleaning", "Stain removal", "24 day delivery"],
     icon: <Ribbon className="w-7 h-7 text-purple-500" />,
     iconBg: "bg-purple-50",
@@ -34,7 +31,6 @@ const services = [
     title: "Iron Only",
     desc: "Professional ironing for your clothes",
     price: "Starting at ₹15",
-    unit: "per piece",
     features: [
       "Crisp & wrinkle-free finish",
       "Quick turnaround",
@@ -143,7 +139,7 @@ const Services = () => {
                 </p>
 
                 <div className="mb-8 pt-6 border-t border-gray-50 flex items-baseline gap-1">
-                  <span className="text-xl font-black text-[#1D546D]">
+                  <span className="text-2xl font-black text-[#1D546D]">
                     {item.price}
                   </span>
                   <span className="text-[#5F9598] font-bold text-sm tracking-tight">

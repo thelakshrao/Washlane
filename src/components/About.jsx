@@ -133,22 +133,4 @@ const About = () => {
                   </div>
                 </div>
 
-                <p className="text-xs md:text-base text-white/70 font-medium leading-relaxed mb-4 md:mb-6">
-                  Get your laundry delivered within 2 hours.
-                </p>
-
-                <div className="flex items-center gap-2 text-[#5F9598] font-black text-xs md:text-sm">
-                  <Clock size={14} />
-                  present Day Delivery
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      <Footer />
-    </>
-  );
-};
-
-export default About;
+                <p className="text-xs md:text-base text-white/70 font-medium leading-relaxed mb-4 md:mb-6"

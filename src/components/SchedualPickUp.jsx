@@ -13,7 +13,7 @@ import { useLocation } from "react-router-dom";
 import PaymentMethod from "./PaymentMethod";
 import { db } from "../firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 const SchedualPickUp = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -798,33 +798,46 @@ const SchedualPickUp = () => {
                   Where should we come to pick up?
                 </p>
                 <div className="space-y-5">
+                  {/* Name Input - Required */}
                   <input
                     type="text"
                     name="name"
-                    placeholder="Full name"
+                    placeholder="Full name *"
+                    required
                     value={formData.name}
                     onChange={handleChange}
                     className="w-full border-2 border-gray-100 p-4 rounded-xl outline-none focus:border-teal-500 transition-colors"
                   />
+
+                  {/* Phone Input - Required & Numbers Only */}
                   <input
                     type="tel"
                     name="phone"
-                    placeholder="Phone number"
+                    placeholder="Phone number *"
+                    required
                     value={formData.phone}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      // This regex allows only digits
+                      const value = e.target.value.replace(/\D/g, "");
+                      handleChange({ target: { name: "phone", value } });
+                    }}
                     className="w-full border-2 border-gray-100 p-4 rounded-xl outline-none focus:border-teal-500 transition-colors"
                   />
+
+                  {/* Address Input - Required */}
                   <textarea
                     name="address"
-                    placeholder="Pickup address"
+                    placeholder="Pickup address *"
+                    required
                     rows={2}
                     value={formData.address}
                     onChange={handleChange}
                     className="w-full border-2 border-gray-100 p-4 rounded-xl outline-none resize-none focus:border-teal-500 transition-colors"
                   />
+
                   <div className="space-y-3">
                     <label className="text-xs font-black uppercase text-gray-400 tracking-widest">
-                      Delivery Instructions
+                      Delivery Instructions (Optional)
                     </label>
 
                     <div className="flex flex-wrap gap-2 mb-2">
@@ -1154,7 +1167,6 @@ const SchedualPickUp = () => {
                               <span className="font-bold uppercase tracking-widest text-[10px] opacity-80">
                                 Total Amount
                               </span>
-                              <p className="text-xs opacity-70">Tax Included</p>
                             </div>
                             <span className="text-3xl font-black">
                               ₹{finalGrandTotal}
@@ -1343,7 +1355,7 @@ const SchedualPickUp = () => {
                       status: "pending",
                     },
                     {
-                      title: "order Deliver",
+                      title: "order Delivered",
                       desc: "Thank You",
                       status: "pending",
                     },
