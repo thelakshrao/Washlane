@@ -13,6 +13,7 @@ import { useLocation } from "react-router-dom";
 import PaymentMethod from "./PaymentMethod";
 import { db } from "../firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import toast from 'react-hot-toast';
 
 const SchedualPickUp = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -31,6 +32,8 @@ const SchedualPickUp = () => {
   const initialAddressFromHome = location.state?.address || "";
   const preSelectedService = location.state?.selectedService || null;
   const cardRef = useRef(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
+  const [tempSelectedMethod, setTempSelectedMethod] = useState("");
 
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(
     !!localStorage.getItem("userEmail")
@@ -61,6 +64,7 @@ const SchedualPickUp = () => {
     name: "",
     phone: "",
     address: initialAddressFromHome,
+    message: "",
   });
 
   const servicesList = useMemo(
@@ -299,26 +303,28 @@ const SchedualPickUp = () => {
     }
   }, [currentStep]);
 
-  const totalAmount = Object.entries(serviceData).reduce(
-    (acc, [sId, items]) => {
-      const s = servicesList.find((x) => x.id === sId);
-      if (typeof items === "number") return acc + items * (s.price || 0);
-      return (
-        acc +
-        Object.entries(items).reduce((sum, [iName, count]) => {
-          const p = s.items?.find((i) => i.name === iName)?.price || 0;
-          return sum + count * p;
-        }, 0)
-      );
-    },
-    0
-  );
+  const basePrice = Object.entries(serviceData).reduce((acc, [sId, items]) => {
+    const s = servicesList.find((x) => x.id === sId);
+    if (typeof items === "number") return acc + items * (s.price || 0);
+    return (
+      acc +
+      Object.entries(items).reduce((sum, [iName, count]) => {
+        const p = s.items?.find((i) => i.name === iName)?.price || 0;
+        return sum + count * p;
+      }, 0)
+    );
+  }, 0);
+
+  const expressCharge = deliveryType === "express" ? basePrice * 0.5 : 0;
+  const subtotal = basePrice + expressCharge;
+  const deliveryFee = subtotal < 299 && subtotal > 0 ? 40 : 0;
+  const finalTotalToPay = subtotal + deliveryFee;
 
   const handleGenerateOrder = async (method, total) => {
     const userEmail = localStorage.getItem("userEmail");
 
     if (!userEmail) {
-      alert("Please log in to place an order!");
+      toast.error("Please log in to place an order!");
       return;
     }
 
@@ -333,10 +339,20 @@ const SchedualPickUp = () => {
         customerEmail: userEmail,
         phone: formData.phone,
         address: formData.address,
-        totalAmount: total,
+        message: formData.message || "",
+
+        deliveryType: deliveryType,
+        baseAmount: basePrice,
+        expressCharge: expressCharge,
+        deliveryFee: deliveryFee,
+        totalAmount: finalTotalToPay,
+
         paymentMethod: method,
         pickupDate: selectedDate,
         pickupTime: selectedTime,
+        dropDate: deliveryType === "standard" ? dropDate : "Express (5-6 hrs)",
+        dropTime: deliveryType === "standard" ? dropTime : "Express (5-6 hrs)",
+
         status: "Order Confirmed",
         items: serviceData,
         createdAt: serverTimestamp(),
@@ -347,12 +363,13 @@ const SchedualPickUp = () => {
         orderData
       );
 
+      localStorage.setItem(`hasSeenOrders_${userEmail}`, "false");
       localStorage.setItem("lastOrderId", newOrderId);
-      alert("Order Booked Successfully! ID: " + newOrderId);
+      toast.success("Order Booked Successfully! ID: " + newOrderId);
       setCurrentStep(6);
     } catch (error) {
       console.error("Firebase Error:", error);
-      alert("Error: " + error.message);
+      toast.error("Error: " + error.message);
     }
   };
 
@@ -505,6 +522,12 @@ const SchedualPickUp = () => {
                       focusBorderColor: colors.teal,
                     }}
                   />
+
+                  <p className="text-xs text-gray-500 mt-2 italic">
+                    * Your order will be picked up within 1 hour of your
+                    selected time.
+                  </p>
+
                   {timeWarning && (
                     <p className="text-sm text-red-500 mt-3 font-semibold flex items-center gap-2">
                       ⚠️ {timeWarning}
@@ -560,14 +583,23 @@ const SchedualPickUp = () => {
                   </div>
 
                   {deliveryType === "express" && showExpressNote && (
-                    <div className="mt-6 p-5 rounded-2xl bg-linear-to-r from-[#1D546D] to-[#5F9598] text-white animate-in fade-in slide-in-from-bottom-3 duration-500">
+                    <div className="mt-6 p-5 rounded-2xl bg-linear-to-r from-[#1D546D] to-[#5F9598] text-white animate-in fade-in slide-in-from-bottom-3 duration-500 shadow-md">
                       <h4 className="text-lg font-black mb-1">
                         Express Delivery Activated
                       </h4>
                       <p className="text-sm opacity-90">
-                        Your clothes will be picked up and delivered within
+                        Picked up and delivered within
                       </p>
-                      <p className="text-xl font-black mt-1">2 – 3 Hours</p>
+                      <p className="text-xl font-black mt-1 mb-3">
+                        5 – 6 Hours
+                      </p>
+
+                      <div className="pt-3 border-t border-white/20">
+                        <p className="text-xs font-medium">
+                          Note: Express delivery will be charged at 1.5x the
+                          standard rate.
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -785,11 +817,49 @@ const SchedualPickUp = () => {
                   <textarea
                     name="address"
                     placeholder="Pickup address"
-                    rows={3}
+                    rows={2}
                     value={formData.address}
                     onChange={handleChange}
                     className="w-full border-2 border-gray-100 p-4 rounded-xl outline-none resize-none focus:border-teal-500 transition-colors"
                   />
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase text-gray-400 tracking-widest">
+                      Delivery Instructions
+                    </label>
+
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {[
+                        "Leave at the door",
+                        "Leave at Neighbor to the right",
+                        "Leave at Neighbor to the left",
+                        "Call before arriving",
+                      ].map((msg) => (
+                        <button
+                          key={msg}
+                          type="button"
+                          onClick={() => {
+                            setFormData((prev) => ({ ...prev, message: msg }));
+                          }}
+                          className={`text-[10px] font-bold px-3 py-2 rounded-lg border transition-all ${
+                            formData.message === msg
+                              ? "bg-teal-500 border-teal-500 text-white"
+                              : "bg-white border-gray-100 text-gray-500 hover:border-teal-200"
+                          }`}
+                        >
+                          {msg}
+                        </button>
+                      ))}
+                    </div>
+
+                    <textarea
+                      name="message"
+                      placeholder="Any special instructions for the driver?"
+                      rows={2}
+                      value={formData.message}
+                      onChange={handleChange}
+                      className="w-full border-2 border-gray-100 p-4 rounded-xl outline-none resize-none focus:border-teal-500 transition-colors text-sm"
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -849,7 +919,7 @@ const SchedualPickUp = () => {
                           className="font-bold mt-1"
                           style={{ color: colors.teal }}
                         >
-                          Express Delivery (2–3 Hours)
+                          Express Delivery (5 – 6 Hours)
                         </p>
                       )}
                     </div>
@@ -1007,77 +1077,230 @@ const SchedualPickUp = () => {
                       })}
                     </div>
 
-                    <div
-                      className="mt-8 p-5 rounded-2xl text-white flex justify-between items-center shadow-lg"
-                      style={{
-                        background: `linear-gradient(135deg, ${colors.deepNavy} 0%, ${colors.primaryBlue} 100%)`,
-                      }}
-                    >
-                      <div>
-                        <span className="font-bold uppercase tracking-widest text-[10px] opacity-80">
-                          Estimated Total
-                        </span>
-                        <p className="text-xs opacity-70">Tax included</p>
-                      </div>
-                      <span className="text-3xl font-black">
-                        ₹
-                        {Object.entries(serviceData).reduce(
-                          (acc, [sId, items]) => {
-                            const s = servicesList.find((x) => x.id === sId);
-                            if (typeof items === "number")
-                              return acc + items * (s.price || 0);
-                            return (
-                              acc +
-                              Object.entries(items).reduce(
-                                (sum, [iName, count]) => {
-                                  const p =
-                                    s.items?.find((i) => i.name === iName)
-                                      ?.price || 0;
-                                  return sum + count * p;
-                                },
-                                0
-                              )
-                            );
-                          },
-                          0
-                        )}
-                      </span>
-                    </div>
+                    {(() => {
+                      const normalPrice = Object.entries(serviceData).reduce(
+                        (acc, [sId, items]) => {
+                          const s = servicesList.find((x) => x.id === sId);
+                          if (!s) return acc;
+                          if (typeof items === "number")
+                            return acc + items * (s.price || 0);
+                          return (
+                            acc +
+                            Object.entries(items).reduce(
+                              (sum, [iName, count]) => {
+                                const p =
+                                  s.items?.find((i) => i.name === iName)
+                                    ?.price || 0;
+                                return sum + count * p;
+                              },
+                              0
+                            )
+                          );
+                        },
+                        0
+                      );
+
+                      const expressExtra =
+                        deliveryType === "express" ? normalPrice * 0.5 : 0;
+                      const currentTotal = normalPrice + expressExtra;
+                      const deliveryCharge =
+                        currentTotal < 299 && currentTotal > 0 ? 40 : 0;
+                      const finalGrandTotal = currentTotal + deliveryCharge;
+
+                      return (
+                        <div className="mt-8 space-y-4 border-t border-gray-100 pt-6">
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-500 font-medium">
+                                Items Total:
+                              </span>
+                              <span className="font-bold text-gray-700">
+                                ₹{normalPrice}
+                              </span>
+                            </div>
+
+                            {deliveryType === "express" && (
+                              <div className="flex justify-between text-sm text-teal-600 font-bold">
+                                <span>Express Delivery (1.5x):</span>
+                                <span>+ ₹{expressExtra}</span>
+                              </div>
+                            )}
+
+                            {deliveryCharge > 0 && (
+                              <div className="flex justify-between text-sm text-orange-600 font-bold">
+                                <span>Delivery Fee (Below ₹299):</span>
+                                <span>+ ₹{deliveryCharge}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {deliveryType === "express" && (
+                            <div className="p-3 bg-teal-50 rounded-xl border border-teal-100">
+                              <p className="text-[11px] text-teal-800 leading-tight">
+                                ✨ <strong>Note:</strong> Because you chose{" "}
+                                <strong>Express Delivery</strong>, your total is
+                                multiplied by 1.5 for 5-6 hour service.
+                              </p>
+                            </div>
+                          )}
+
+                          <div
+                            className="p-5 rounded-2xl text-white flex justify-between items-center shadow-lg"
+                            style={{
+                              background: `linear-gradient(135deg, ${colors.deepNavy} 0%, ${colors.primaryBlue} 100%)`,
+                            }}
+                          >
+                            <div>
+                              <span className="font-bold uppercase tracking-widest text-[10px] opacity-80">
+                                Total Amount
+                              </span>
+                              <p className="text-xs opacity-70">Tax Included</p>
+                            </div>
+                            <span className="text-3xl font-black">
+                              ₹{finalGrandTotal}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
             )}
 
             {currentStep === 5 && (
-              <div className="animate-in fade-in duration-500">
-                {!isUserLoggedIn && (
-                  <div className="bg-red-50 border border-red-200 p-4 rounded-2xl mb-6">
-                    <p className="text-red-600 text-sm font-bold text-center">
-                      ⚠️ You must be logged in to complete your booking.
-                    </p>
-                    <button
-                      onClick={() => {
-                        const event = new Event("open-login-modal");
-                        window.dispatchEvent(event);
-                      }}
-                      className="w-full mt-2 text-xs font-black underline text-red-700 uppercase"
-                    >
-                      Click here to Login
-                    </button>
-                  </div>
-                )}
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="text-center mb-8">
+                  <h2
+                    className="text-3xl font-bold"
+                    style={{ color: colors.deepNavy }}
+                  >
+                    Finalize Payment
+                  </h2>
+                  <p className="text-gray-500">
+                    Securely complete your laundry booking
+                  </p>
+                </div>
 
-                <PaymentMethod
-                  totalAmount={totalAmount}
-                  onProceed={(method) => {
-                    if (!localStorage.getItem("userEmail")) {
-                      const event = new Event("open-login-modal");
-                      window.dispatchEvent(event);
-                      return;
-                    }
-                    handleGenerateOrder(method, totalAmount);
-                  }}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                  <div className="order-2 md:order-1 flex flex-col justify-between">
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+                        Select Payment Method
+                      </p>
+
+                      <PaymentMethod
+                        totalAmount={finalTotalToPay}
+                        onProceed={(method) => {
+                          setSelectedPaymentMethod(method);
+                          setTempSelectedMethod(method);
+                        }}
+                      />
+                    </div>
+
+                    <div className="mt-8">
+                      <div className="flex gap-4">
+                        <button
+                          onClick={() => setCurrentStep(4)}
+                          className="flex-1 py-5 rounded-2xl font-black uppercase tracking-widest border-2 transition-all flex items-center justify-center gap-2 hover:bg-gray-50"
+                          style={{
+                            borderColor: colors.deepNavy,
+                            color: colors.deepNavy,
+                          }}
+                        >
+                          <ArrowLeft size={18} /> Back
+                        </button>
+
+                        <button
+                          disabled={!selectedPaymentMethod}
+                          onClick={() => {
+                            if (!localStorage.getItem("userEmail")) {
+                              const event = new Event("open-login-modal");
+                              window.dispatchEvent(event);
+                              return;
+                            }
+                            handleGenerateOrder(
+                              selectedPaymentMethod,
+                              finalTotalToPay
+                            );
+                          }}
+                          className={`flex-2 py-5 rounded-2xl text-white font-black uppercase tracking-widest shadow-xl transition-all transform active:scale-95 ${
+                            !selectedPaymentMethod
+                              ? "bg-gray-300 cursor-not-allowed"
+                              : "hover:brightness-110"
+                          }`}
+                          style={{
+                            backgroundColor:
+                              selectedPaymentMethod === "COD"
+                                ? colors.deepNavy
+                                : selectedPaymentMethod === "UPI"
+                                ? colors.teal
+                                : "#D1D5DB",
+                          }}
+                        >
+                          {selectedPaymentMethod === "COD"
+                            ? "Schedule Now"
+                            : selectedPaymentMethod === "UPI"
+                            ? `Pay ₹${finalTotalToPay} & Schedule`
+                            : "Select Method"}
+                        </button>
+                      </div>
+
+                      <p className="text-center text-[9px] text-gray-400 font-bold uppercase mt-4 tracking-tighter">
+                        By clicking, you agree to our service terms and
+                        conditions.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="order-1 md:order-2 bg-gray-50 p-6 rounded-3xl border-2 border-gray-100">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+                      Order Final Summary
+                    </p>
+
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm text-gray-500 font-medium">
+                        <span>Items Total</span>
+                        <span>₹{basePrice}</span>
+                      </div>
+
+                      {deliveryType === "express" && (
+                        <div className="flex justify-between text-sm text-teal-600 font-bold">
+                          <span>Express Charge (1.5x)</span>
+                          <span>+ ₹{expressCharge}</span>
+                        </div>
+                      )}
+
+                      {deliveryFee > 0 && (
+                        <div className="flex justify-between text-sm text-orange-600 font-bold">
+                          <span>Delivery Fee</span>
+                          <span>+ ₹{deliveryFee}</span>
+                        </div>
+                      )}
+
+                      <div className="pt-4 border-t-2 border-dashed border-gray-200 flex justify-between items-center">
+                        <span className="font-black text-[#061E29]">
+                          Amount to Pay
+                        </span>
+                        <span
+                          className="text-3xl font-black"
+                          style={{ color: colors.primaryBlue }}
+                        >
+                          ₹{finalTotalToPay}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 p-3 bg-white rounded-xl border border-gray-100">
+                      <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">
+                        Pickup From:
+                      </p>
+                      <p className="text-xs font-bold text-gray-600">
+                        {formData.address}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -1096,7 +1319,6 @@ const SchedualPickUp = () => {
                 </div>
 
                 <div className="max-w-sm mx-auto space-y-5 relative">
-
                   <div className="relative left-0 top-2 bottom-2 w-0.5 bg-gray-100 -z-10" />
 
                   {[
@@ -1121,7 +1343,7 @@ const SchedualPickUp = () => {
                       status: "pending",
                     },
                     {
-                      title: "oder Deliver",
+                      title: "order Deliver",
                       desc: "Thank You",
                       status: "pending",
                     },
