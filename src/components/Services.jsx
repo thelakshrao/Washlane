@@ -23,7 +23,7 @@ const services = [
     title: "Dry Cleaning",
     desc: "Premium care for delicate fabrics",
     price: "Starting at ₹299",
-    features: ["Specialized cleaning", "Stain removal", "24 day delivery"],
+    features: ["Specialized cleaning", "Stain removal", "24 hour delivery"],
     icon: <Ribbon className="w-7 h-7 text-purple-500" />,
     iconBg: "bg-purple-50",
   },
