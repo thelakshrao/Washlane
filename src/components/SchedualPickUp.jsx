@@ -798,44 +798,54 @@ const SchedualPickUp = () => {
                   Where should we come to pick up?
                 </p>
                 <div className="space-y-5">
-                  {/* Name Input - Required */}
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="Full name *"
-                    required
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full border-2 border-gray-100 p-4 rounded-xl outline-none focus:border-teal-500 transition-colors"
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Enter your full name"
+                      required
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="w-full border-2 border-gray-100 p-4 rounded-xl outline-none focus:border-teal-500 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      placeholder="Enter digits only"
+                      required
+                      value={formData.phone}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "");
+                        handleChange({ target: { name: "phone", value } });
+                      }}
+                      className="w-full border-2 border-gray-100 p-4 rounded-xl outline-none focus:border-teal-500 transition-colors"
+                    />
+                  </div>
 
-                  {/* Phone Input - Required & Numbers Only */}
-                  <input
-                    type="tel"
-                    name="phone"
-                    placeholder="Phone number *"
-                    required
-                    value={formData.phone}
-                    onChange={(e) => {
-                      // This regex allows only digits
-                      const value = e.target.value.replace(/\D/g, "");
-                      handleChange({ target: { name: "phone", value } });
-                    }}
-                    className="w-full border-2 border-gray-100 p-4 rounded-xl outline-none focus:border-teal-500 transition-colors"
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Pickup Address <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      name="address"
+                      placeholder="Street, Building, Apartment No."
+                      required
+                      rows={2}
+                      value={formData.address}
+                      onChange={handleChange}
+                      className="w-full border-2 border-gray-100 p-4 rounded-xl outline-none resize-none focus:border-teal-500 transition-colors"
+                    />
+                  </div>
 
-                  {/* Address Input - Required */}
-                  <textarea
-                    name="address"
-                    placeholder="Pickup address *"
-                    required
-                    rows={2}
-                    value={formData.address}
-                    onChange={handleChange}
-                    className="w-full border-2 border-gray-100 p-4 rounded-xl outline-none resize-none focus:border-teal-500 transition-colors"
-                  />
-
-                  <div className="space-y-3">
+                  <div className="space-y-3 pt-2">
                     <label className="text-xs font-black uppercase text-gray-400 tracking-widest">
                       Delivery Instructions (Optional)
                     </label>
@@ -866,7 +876,7 @@ const SchedualPickUp = () => {
 
                     <textarea
                       name="message"
-                      placeholder="Any special instructions for the driver?"
+                      placeholder="Any special instructions for the driver? (Optional)"
                       rows={2}
                       value={formData.message}
                       onChange={handleChange}

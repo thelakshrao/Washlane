@@ -518,4 +518,308 @@ const Navbar = () => {
                         <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
                           Order Reference
                         </span>
-             
+                        <p className="font-black text-sm text-[#061E29]">
+                          {order.orderId}
+                        </p>
+                      </div>
+                      <span
+                        className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
+                          order.status === "Order Confirmed"
+                            ? "bg-blue-50 text-blue-600"
+                            : "bg-teal-50 text-teal-600"
+                        }`}
+                      >
+                        {order.status}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 mb-4 bg-gray-50 p-3 rounded-xl">
+                      <p className="text-[11px] text-gray-600 font-bold flex items-center gap-2">
+                        <Clock size={12} className="text-teal-500" />{" "}
+                        {order.pickupDate} at {order.pickupTime}
+                      </p>
+                      <p className="text-[11px] text-gray-400 flex items-start gap-2 line-clamp-1 italic">
+                        📍 {order.address}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t flex justify-between items-center">
+                      <div className="flex flex-col">
+                        <span className="text-[9px] font-bold text-gray-400 uppercase">
+                          Total Bill
+                        </span>
+                        <span className="text-lg font-black text-[#061E29]">
+                          ₹{order.totalAmount}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => fetchOrderDetails(order.id)}
+                        className="bg-[#061E29] text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-teal-600 transition-colors"
+                      >
+                        Details
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showOrderDetails && selectedOrder && (
+        <div className="fixed inset-0 z-300 flex justify-end">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowOrderDetails(false)}
+          />
+
+          <div className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-500 overflow-hidden">
+            <div className="p-6 border-b flex justify-between items-center bg-white sticky top-0 z-10">
+              <div>
+                <h3 className="font-black text-xl text-[#061E29]">
+                  Order Details
+                </h3>
+                <p className="text-[10px] text-teal-600 font-bold uppercase tracking-widest">
+                  Ref: {selectedOrder.orderId}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowOrderDetails(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
+              {loadingOrderDetails ? (
+                <div className="flex flex-col items-center justify-center h-40">
+                  <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mb-2" />
+                  <p className="text-xs font-bold text-gray-400 uppercase">
+                    Loading Details...
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <OrderStatusTimeline status={selectedOrder.status} />
+                  <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-50">
+                      <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        Items Selected
+                      </h4>
+                      <span
+                        className={`text-[9px] font-black px-2 py-1 rounded-md uppercase border ${
+                          selectedOrder.deliveryType === "express"
+                            ? "bg-amber-50 border-amber-200 text-amber-600"
+                            : "bg-blue-50 border-blue-200 text-blue-600"
+                        }`}
+                      >
+                        {selectedOrder.deliveryType || "Standard"} Delivery
+                      </span>
+                    </div>
+
+                    <div className="space-y-4">
+                      {selectedOrder.items &&
+                      typeof selectedOrder.items === "object" ? (
+                        Object.entries(selectedOrder.items).map(
+                          ([category, clothes]) => (
+                            <div key={category} className="space-y-2">
+                              <p className="text-[9px] font-black text-teal-600 uppercase tracking-tight bg-teal-50 inline-block px-2 py-0.5 rounded">
+                                {category.replace("-", " & ")}
+                              </p>
+                              {Object.entries(clothes).map(
+                                ([itemName, quantity]) => (
+                                  <div
+                                    key={itemName}
+                                    className="flex justify-between text-sm font-bold text-[#061E29]"
+                                  >
+                                    <span className="flex items-center gap-2">
+                                      {itemName}
+                                      <span className="text-gray-400 text-[11px] font-medium">
+                                        x{quantity}
+                                      </span>
+                                    </span>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          )
+                        )
+                      ) : (
+                        <p className="text-xs italic text-gray-400">
+                          No items listed.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400 font-bold uppercase text-[10px]">
+                        Pickup
+                      </span>
+                      <span className="font-black text-[#061E29]">
+                        {selectedOrder.pickupDate} | {selectedOrder.pickupTime}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400 font-bold uppercase text-[10px]">
+                        Expected Drop
+                      </span>
+                      <span
+                        className={`font-black ${
+                          selectedOrder.deliveryType === "express"
+                            ? "text-amber-600"
+                            : "text-[#061E29]"
+                        }`}
+                      >
+                        {selectedOrder.deliveryType === "express"
+                          ? "Within 5-6 Hours"
+                          : `${selectedOrder.dropDate} | ${selectedOrder.dropTime}`}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400 font-bold uppercase text-[10px]">
+                        Address
+                      </span>
+                      <span className="font-black text-[#061E29] text-right max-w-45 wrap-break-words">
+                        {selectedOrder.address || "Standard Address"}
+                      </span>
+                    </div>
+
+                    <div className="pt-3 border-t-2 border-dashed border-gray-100 flex justify-between items-center">
+                      <span className="text-gray-400 font-black uppercase text-[10px]">
+                        Total Bill
+                      </span>
+                      <span className="text-2xl font-black text-teal-600">
+                        ₹{selectedOrder.totalAmount}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showLogin && (
+        <div className="fixed inset-0 z-300 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8 relative">
+            <button
+              onClick={() => {
+                setShowLogin(false);
+                setOtpSent(false);
+              }}
+              className="absolute top-6 right-6 text-gray-400 hover:text-black"
+            >
+              <X size={20} />
+            </button>
+            <div className="text-center mb-8">
+              <h2 className="font-black text-3xl text-[#061E29] mb-2 tracking-tighter">
+                WASHLANE
+              </h2>
+              <p className="text-gray-500 text-sm font-medium">
+                {otpSent
+                  ? "Verify your email to continue"
+                  : "Welcome back, please login"}
+              </p>
+            </div>
+
+            {!otpSent ? (
+              <form onSubmit={handleSendOTP} className="space-y-4">
+                <input
+                  required
+                  type="text"
+                  value={enteredName}
+                  onChange={(e) => setEnteredName(e.target.value)}
+                  placeholder="Full Name"
+                  className="w-full px-4 py-4 border border-gray-100 bg-gray-50 rounded-2xl focus:ring-2 focus:ring-[#061E29] outline-none font-medium"
+                />
+                <input
+                  required
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email Address"
+                  className="w-full px-4 py-4 border border-gray-100 bg-gray-50 rounded-2xl focus:ring-2 focus:ring-[#061E29] outline-none font-medium"
+                />
+                <button
+                  disabled={loading}
+                  type="submit"
+                  className="w-full bg-[#061E29] text-white font-black uppercase tracking-widest py-4 rounded-2xl shadow-xl disabled:bg-gray-300"
+                >
+                  {loading ? "Sending OTP..." : "Continue"}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyOTP} className="space-y-4">
+                <input
+                  required
+                  type="text"
+                  maxLength="6"
+                  value={userOtpInput}
+                  onChange={(e) => setUserOtpInput(e.target.value)}
+                  placeholder="• • • • • •"
+                  className="w-full px-4 py-4 border border-gray-100 bg-gray-50 rounded-2xl focus:ring-2 focus:ring-[#061E29] outline-none text-center text-2xl font-black tracking-[10px]"
+                />
+                <button
+                  type="submit"
+                  className="w-full bg-teal-600 text-white font-black uppercase tracking-widest py-4 rounded-2xl shadow-xl"
+                >
+                  Verify & Login
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOtpSent(false)}
+                  className="w-full text-[10px] font-black text-gray-400 uppercase text-center mt-2"
+                >
+                  Back to Email
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+export default Navbar;
+
+const ORDER_STEPS = [
+  "Order Confirmed",
+  "Pickup Scheduled",
+  "Washing In Progress",
+  "Packing",
+  "Out for Delivery",
+  "Delivered",
+];
+
+const OrderStatusTimeline = ({ status }) => {
+  const currentStep = ORDER_STEPS.indexOf(status);
+
+  return (
+    <div className="space-y-3">
+      {ORDER_STEPS.map((step, index) => (
+        <div key={step} className="flex items-center gap-3">
+          <div
+            className={`w-3 h-3 rounded-full ${
+              index <= currentStep ? "bg-teal-500" : "bg-gray-300"
+            }`}
+          />
+          <p
+            className={`text-sm font-bold ${
+              index <= currentStep ? "text-[#061E29]" : "text-gray-400"
+            }`}
+          >
+            {step}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+};

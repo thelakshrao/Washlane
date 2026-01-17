@@ -101,4 +101,4 @@ const TakingOrder = () => {
   );
 };
 
-export default TakingOrder
+export default TakingOrder;

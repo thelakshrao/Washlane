@@ -118,4 +118,76 @@ const Home = () => {
                         setShowDropdown(false); 
                       }}
                       className="w-full outline-none bg-transparent text-sm"
-      
+                    />
+
+                    {initialAddress && (
+                      <button onClick={() => setInitialAddress("")} className="p-1">
+                        <X size={14} className="text-gray-400 hover:text-red-500" />
+                      </button>
+                    )}
+                  </div>
+
+                  {showDropdown && !isLoading && (
+                    <div className="absolute top-full left-0 w-full bg-white border mt-1 rounded-xl shadow-lg z-50 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={handleGetCurrentLocation}
+                        className="w-full text-left px-4 py-4 text-sm hover:bg-[#F3F4F4] flex items-center gap-3 text-[#1D546D] font-semibold"
+                      >
+                        <MapPin size={18} className="text-[#5F9598]" /> 
+                        Use current location
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={() =>
+                    initialAddress.trim()
+                      ? navigate("/schedualpickup", {
+                          state: { address: initialAddress },
+                        })
+                      : alert("Please enter your pickup address!")
+                  }
+                  disabled={isLoading}
+                  className="bg-[#1D546D] hover:bg-[#061E29] text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-sm cursor-pointer min-w-30 disabled:bg-gray-400 transition-colors"
+                >
+                  {isLoading ? "Wait..." : "Book Pickup"} <ArrowRight size={14} />
+                </button>
+              </div>
+
+              <div className="flex gap-4 flex-wrap">
+                {features.map((item, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-[#5F9598]" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative mx-auto w-full max-w-md aspect-4/3 bg-white rounded-3xl overflow-hidden shadow">
+              {images.map((img, i) => (
+                <img
+                  key={i}
+                  src={img}
+                  alt="Laundry"
+                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+                    i === currentImage ? "opacity-100" : "opacity-0"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <Work />
+      <Services />
+      <Takingorder />
+      <Footer />
+    </>
+  );
+};
+
+export default Home;
