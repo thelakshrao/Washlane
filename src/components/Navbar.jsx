@@ -3,7 +3,6 @@ import { HashLink } from "react-router-hash-link";
 import { Link, useLocation } from "react-router-dom";
 import emailjs from "@emailjs/browser";
 import { db } from "../firebase";
-
 import {
   doc,
   setDoc,
@@ -30,10 +29,13 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(
-    localStorage.getItem("isLoggedIn") === "true"
+    localStorage.getItem("isLoggedIn") === "true",
+  );
+  const [userRole, setUserRole] = useState(
+    localStorage.getItem("userRole") || "customer",
   );
   const [userName, setUserName] = useState(
-    localStorage.getItem("userName") || ""
+    localStorage.getItem("userName") || "",
   );
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -50,7 +52,6 @@ const Navbar = () => {
     const email = localStorage.getItem("userEmail");
     return localStorage.getItem(`ordersSeen_${email}`) === "true";
   });
-
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
@@ -71,15 +72,32 @@ const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    const syncEverything = () => {
+    const syncEverything = async () => {
       const logged = localStorage.getItem("isLoggedIn") === "true";
+      const userEmail = localStorage.getItem("userEmail");
+
       setIsLoggedIn(logged);
       setUserName(localStorage.getItem("userName") || "");
-      if (logged) fetchUserOrders();
+
+      if (logged && userEmail) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", userEmail));
+          if (userDoc.exists()) {
+            const role = userDoc.data().role;
+            setUserRole(role);
+            localStorage.setItem("userRole", role);
+          }
+        } catch (error) {
+          console.error("Error fetching role:", error);
+        }
+        fetchUserOrders();
+      }
     };
 
     window.addEventListener("login-status-changed", syncEverything);
     window.addEventListener("open-login-modal", () => setShowLogin(true));
+
+    syncEverything();
 
     return () => {
       window.removeEventListener("login-status-changed", syncEverything);
@@ -118,7 +136,7 @@ const Navbar = () => {
       setUserOrders(orders);
 
       const storedCount = Number(
-        localStorage.getItem(`orderCount_${userEmail}`) || 0
+        localStorage.getItem(`orderCount_${userEmail}`) || 0,
       );
 
       if (orders.length > storedCount) {
@@ -163,7 +181,7 @@ const Navbar = () => {
           otp_code: generatedOTP,
           user_name: enteredName,
         },
-        "qWOHMVFvpSPceJAdP"
+        "qWOHMVFvpSPceJAdP",
       )
       .then(() => {
         setLoading(false);
@@ -192,10 +210,12 @@ const Navbar = () => {
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("userName", enteredName);
         localStorage.setItem("userEmail", email);
+        localStorage.setItem("userRole", "customer");
 
         window.dispatchEvent(new Event("login-status-changed"));
         setIsLoggedIn(true);
         setUserName(enteredName);
+        setUserRole("customer");
         setShowLogin(false);
         setOtpSent(false);
         localStorage.removeItem("current_otp");
@@ -331,26 +351,44 @@ const Navbar = () => {
               <div className="relative">
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className={`flex items-center gap-1 text-xs font-semibold uppercase tracking-wider ${textColor}`}
+                  className={`flex items-center gap-1 text-xs font-black uppercase tracking-widest ${textColor}`}
                 >
-                  {userName} <ChevronDown size={14} />
+                  {userName ? userName.split(" ")[0] : "Account"}
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-200 ${showDropdown ? "rotate-180" : ""}`}
+                  />
                 </button>
+
                 {showDropdown && (
                   <div
                     ref={dropdownRef}
-                    className="absolute right-0 mt-2 w-48 bg-white border rounded-xl shadow-2xl overflow-hidden py-1"
+                    className="absolute right-0 mt-2 w-52 bg-white border rounded-2xl shadow-2xl overflow-hidden py-1 z-50 animate-in fade-in zoom-in duration-200"
                   >
-                    <div className="px-4 py-2 border-b">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase">
-                        Account
+                    <div className="px-4 py-2 border-b bg-gray-50/50">
+                      <p className="text-[10px] text-gray-400 font-black uppercase">
+                        {userRole === "admin"
+                          ? "Administrator"
+                          : "Customer Account"}
                       </p>
                     </div>
-                    <button className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-50 text-xs font-bold text-gray-700">
+                    {userRole === "admin" && (
+                      <Link
+                        to="/admin-portal-washlane"
+                        onClick={() => setShowDropdown(false)}
+                        className="w-full flex items-center gap-2 px-4 py-3 hover:bg-teal-50 text-[11px] font-black text-teal-600 uppercase tracking-wider border-b border-gray-50"
+                      >
+                        <Settings size={14} /> Admin Dashboard
+                      </Link>
+                    )}
+
+                    <button className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-50 text-[11px] font-bold text-gray-700 uppercase tracking-wider">
                       <Settings size={14} /> Settings
                     </button>
+
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2 px-4 py-3 hover:bg-red-50 text-red-600 text-xs font-bold border-t"
+                      className="w-full flex items-center gap-2 px-4 py-3 hover:bg-red-50 text-red-600 text-[11px] font-black border-t border-gray-50 uppercase tracking-wider"
                     >
                       <LogOut size={14} /> Logout
                     </button>
@@ -641,10 +679,10 @@ const Navbar = () => {
                                       </span>
                                     </span>
                                   </div>
-                                )
+                                ),
                               )}
                             </div>
-                          )
+                          ),
                         )
                       ) : (
                         <p className="text-xs italic text-gray-400">
